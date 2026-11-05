@@ -18,8 +18,8 @@ export function Logo({ compact }: { compact?: boolean }) {
         </svg>
       </span>
       {!compact ? (
-        <span className="text-[17px] font-semibold tracking-[-0.045em] text-ink">
-          relay<span className="text-accent">.</span>
+        <span className="text-[13px] font-semibold tracking-[-0.03em] text-ink whitespace-nowrap">
+          Niyamic-Voice-AI-Agent<span className="text-accent">.</span>
         </span>
       ) : null}
     </Link>

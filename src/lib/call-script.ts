@@ -16,7 +16,7 @@ export type ScriptEvent =
 export const CALL_SCRIPT: ScriptEvent[] = [
   {
     type: "ai",
-    text: "Thanks for calling Relay support. This is Ayesha. How can I help you today?",
+    text: "Thanks for calling Niyamic-Voice-AI-Agent support. This is Ayesha. How can I help you today?",
     confidence: 0.97,
     reasoning: "Greeting · language set to English",
   },
@@ -87,7 +87,7 @@ export const CLOSING_SCRIPT: ScriptEvent[] = [
   },
   {
     type: "ai",
-    text: "Thanks for calling Relay. Have a great day.",
+    text: "Thanks for calling Niyamic-Voice-AI-Agent. Have a great day.",
     confidence: 0.99,
     reasoning: "Close · call resolved",
   },

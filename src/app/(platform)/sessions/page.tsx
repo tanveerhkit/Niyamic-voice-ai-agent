@@ -52,7 +52,7 @@ function downloadCsv(sessions: SessionRecord[]) {
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement("a");
   anchor.href = url;
-  anchor.download = "relay-sessions.csv";
+  anchor.download = "niyamic-sessions.csv";
   anchor.click();
   URL.revokeObjectURL(url);
 }

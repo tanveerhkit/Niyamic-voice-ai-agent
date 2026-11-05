@@ -45,7 +45,7 @@ function crumbFor(pathname: string) {
   if (pathname.startsWith("/supervisor")) return "Supervisor";
   if (pathname.startsWith("/analytics")) return "Analytics";
   if (pathname.startsWith("/integrations")) return "Integrations";
-  return "Relay";
+  return "Niyamic-Voice-AI-Agent";
 }
 
 function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
@@ -223,7 +223,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </button>
             <div className="flex min-w-0 items-center gap-2 text-[12px]">
               <span className="hidden font-mono text-[9.5px] uppercase tracking-[0.16em] text-muted-2 sm:inline">
-                Relay
+                Niyamic-Voice-AI-Agent
               </span>
               <span className="hidden text-muted-2 sm:inline">/</span>
               <span className="truncate font-medium text-ink">{crumbFor(pathname)}</span>

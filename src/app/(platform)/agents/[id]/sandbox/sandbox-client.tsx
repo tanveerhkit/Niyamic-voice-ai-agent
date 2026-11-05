@@ -33,9 +33,9 @@ type SandboxMessage = {
 };
 
 const GREETINGS: Record<Language, string> = {
-  en: "Thanks for calling Relay support. This is Ayesha. How can I help you today?",
-  ur: "Relay support se baat kar rahi hoon, main Ayesha. Kaise madad kar sakti hoon?",
-  hi: "Relay support, main Ayesha. Main aap ki kaise madad kar sakti hoon?",
+  en: "Thanks for calling Niyamic-Voice-AI-Agent support. This is Ayesha. How can I help you today?",
+  ur: "Niyamic-Voice-AI-Agent support se baat kar rahi hoon, main Ayesha. Kaise madad kar sakti hoon?",
+  hi: "Niyamic-Voice-AI-Agent support, main Ayesha. Main aap ki kaise madad kar sakti hoon?",
 };
 
 const SAMPLES: Record<Language, string[]> = {

@@ -20,9 +20,9 @@ const instrumentSerif = Instrument_Serif({
 });
 
 export const metadata: Metadata = {
-  title: "Relay — Voice agents that know when to hand off",
+  title: "Niyamic-Voice-AI-Agent — Voice agents that know when to hand off",
   description:
-    "A real-time AI voice agent platform with seamless human transfer, live transcript, and post-call intelligence.",
+    "Niyamic-Voice-AI-Agent is a real-time AI voice agent platform with seamless human transfer, live transcript, and post-call intelligence.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
