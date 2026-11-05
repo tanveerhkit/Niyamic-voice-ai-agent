@@ -31,5 +31,11 @@
   },
   "optionalDependencies": {
     "@next/swc-win32-x64-msvc": "^16.4.5"
+  },
+  "engines": {
+    "node": "20.x"
+  },
+  "overrides": {
+    "is-core-module": "2.16.2"
   }
 }
