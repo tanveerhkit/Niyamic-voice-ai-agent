@@ -34,6 +34,7 @@ jobs:
       - name: Build static export
         run: npm run build
         env:
+          OUTPUT_EXPORT: "true"
           NEXT_PUBLIC_BASE_PATH: /relay
 
       - name: SPA fallback
