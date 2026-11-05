@@ -35,7 +35,7 @@ jobs:
         run: npm run build
         env:
           OUTPUT_EXPORT: "true"
-          NEXT_PUBLIC_BASE_PATH: /relay
+          NEXT_PUBLIC_BASE_PATH: /${{ github.event.repository.name }}
 
       - name: SPA fallback
         run: cp out/index.html out/404.html
