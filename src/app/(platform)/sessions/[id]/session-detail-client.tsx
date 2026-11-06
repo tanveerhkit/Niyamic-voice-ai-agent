@@ -8,11 +8,9 @@ import {
   ArrowUpRight,
   Check,
   CheckCircle2,
-  ClipboardList,
   Download,
-  Headphones,
+  FlaskConical,
   MessageSquare,
-  Sparkles,
 } from "lucide-react";
 import { agentById, seedAgents } from "@/lib/agents";
 import { useAgent } from "@/lib/agent-store";
@@ -114,7 +112,7 @@ export default function SessionDetailPage() {
         <EmptyState
           icon={<MessageSquare className="h-5 w-5" />}
           title="Session not found"
-          description="This record may have been cleared from local storage. Seed sessions and completed demo calls are available in the session log."
+          description="This session may have been deleted."
           action={
             <Link href="/sessions">
               <Button variant="primary">Back to sessions</Button>
@@ -146,7 +144,6 @@ export default function SessionDetailPage() {
       </div>
 
       <PageHeader
-        eyebrow={`03 — Session detail · ${formatDateTime(record.startedAt)}`}
         title={
           <span className="flex flex-wrap items-center gap-3">
             {record.customerName}
@@ -163,14 +160,8 @@ export default function SessionDetailPage() {
             </Button>
             <Link href={`/agents/${agent.id}/sandbox`}>
               <Button variant="secondary">
-                <Sparkles className="h-3.5 w-3.5" />
+                <FlaskConical className="h-3.5 w-3.5" />
                 Open in sandbox
-              </Button>
-            </Link>
-            <Link href="/supervisor">
-              <Button variant="primary">
-                <Headphones className="h-3.5 w-3.5" />
-                Supervisor desk
               </Button>
             </Link>
           </>
@@ -180,7 +171,7 @@ export default function SessionDetailPage() {
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_340px]">
         <div className="space-y-4">
           <Panel className="overflow-hidden">
-            <div className="border-b border-line bg-gradient-to-br from-accent/[0.055] via-transparent to-transparent px-5 py-5">
+            <div className="border-b border-line px-5 py-5">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <p className="font-mono text-[9px] uppercase tracking-[0.16em] text-accent">
@@ -292,7 +283,7 @@ export default function SessionDetailPage() {
 
         <div className="space-y-4">
           <Panel className="p-4">
-            <SectionTitle title="Session details" description="Immutable record of the call." />
+            <SectionTitle title="Details" />
             <div className="mt-3 space-y-2 text-[10.5px]">
               <div className="flex items-center justify-between border-b border-line pb-2">
                 <span className="text-muted">Session</span>
@@ -333,11 +324,7 @@ export default function SessionDetailPage() {
           </Panel>
 
           <Panel className="p-4">
-            <SectionTitle
-              title="Handoff log"
-              description="Every transfer with reason and timestamp."
-              action={<ClipboardList className="h-3.5 w-3.5 text-muted-2" />}
-            />
+            <SectionTitle title="Handoff log" />
             {record.handoffs && record.handoffs.length ? (
               <div className="mt-3 space-y-3">
                 {record.handoffs.map((handoff, index) => (
@@ -376,64 +363,44 @@ export default function SessionDetailPage() {
                     <span className="font-mono text-[8.5px] text-muted-2">Sara Malik</span>
                   </div>
                   <p className="mt-2 text-[10.5px] leading-relaxed text-ink/85">
-                    {record.transferReason ?? "Policy exception"} — specialist joined with the full
-                    transcript and customer context.
+                    {record.transferReason ?? "Policy exception"}
                   </p>
                   <div className="mt-2 space-y-1 border-t border-line pt-2 font-mono text-[8.5px] text-muted-2">
                     <p>requested {formatDuration(handoffAtSec)} into the call</p>
                     <p>accepted {formatDuration(handoffAtSec + 8)}</p>
-                    <p>returned for close {formatDuration(returnedAtSec)}</p>
+                    <p>returned {formatDuration(returnedAtSec)}</p>
                   </div>
-                  <p className="mt-2 text-[9.5px] leading-relaxed text-muted">
-                    Customer did not repeat any details. Control returned to AI for confirmation and
-                    close.
-                  </p>
                 </div>
               </div>
             ) : (
-              <div className="mt-3 flex items-start gap-2 rounded-none border border-green/20 bg-green/[0.04] p-3">
-                <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-green" />
-                <div>
-                  <p className="text-[10.5px] font-medium text-green">No human handoff</p>
-                  <p className="mt-0.5 text-[9.5px] leading-relaxed text-muted">
-                    AI resolved the request and closed the call without escalation.
-                  </p>
-                </div>
+              <div className="mt-3 flex items-center gap-2 rounded-none border border-line bg-surface-2/50 p-3">
+                <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-green" />
+                <p className="text-[10.5px] text-muted">No handoff</p>
               </div>
             )}
           </Panel>
 
           <Panel className="p-4">
-            <div className="flex items-start gap-2.5">
-              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-none border border-accent/20 bg-accent/[0.07] text-accent">
-                <Sparkles className="h-3.5 w-3.5" />
-              </span>
-              <div>
-                <p className="text-[11.5px] font-medium text-ink">What to improve</p>
-                <p className="mt-1 text-[10.5px] leading-relaxed text-muted">{summary.recommendation}</p>
+            <SectionTitle
+              title="Recommendation"
+              action={
                 <Link
                   href={`/agents/${agent.id}`}
-                  className="mt-2 inline-flex items-center gap-1 text-[10px] font-medium text-accent hover:underline"
+                  className="inline-flex items-center gap-1 text-[10px] text-muted hover:text-ink"
                 >
-                  Open agent builder <ArrowUpRight className="h-2.5 w-2.5" />
+                  Edit agent <ArrowUpRight className="h-2.5 w-2.5" />
                 </Link>
-              </div>
-            </div>
+              }
+            />
+            <p className="mt-2 text-[10.5px] leading-relaxed text-muted">{summary.recommendation}</p>
           </Panel>
 
           <Panel className="p-4">
-            <SectionTitle title="Recording" description="Room composite recording." />
+            <SectionTitle title="Recording" />
             <div className="mt-3">
               <RecordingPlayer durationSec={record.durationSec} />
             </div>
           </Panel>
-
-          <div className="flex items-center justify-between rounded-none border border-line bg-surface-2 px-3 py-2">
-            <span className="font-mono text-[8.5px] uppercase tracking-[0.1em] text-muted-2">
-              PII masked · summary generated
-            </span>
-            <Badge tone="outline">v1.0</Badge>
-          </div>
         </div>
       </div>
     </div>

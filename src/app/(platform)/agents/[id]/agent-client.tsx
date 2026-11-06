@@ -13,7 +13,6 @@ import {
   Plus,
   Rocket,
   Save,
-  Sparkles,
   UserRound,
   Wrench,
   X,
@@ -58,14 +57,16 @@ function FormSection({
   children,
 }: {
   title: string;
-  description: string;
+  description?: string;
   children: React.ReactNode;
 }) {
   return (
     <section className="border-b border-line pb-6 last:border-0 last:pb-0">
       <div className="mb-4">
-        <h3 className="font-display text-[19px] font-normal tracking-[-0.015em] text-ink">{title}</h3>
-        <p className="mt-0.5 text-[11.5px] leading-relaxed text-muted">{description}</p>
+        <h3 className="font-display text-[17px] font-normal tracking-[-0.015em] text-ink">{title}</h3>
+        {description ? (
+          <p className="mt-0.5 text-[11.5px] leading-relaxed text-muted">{description}</p>
+        ) : null}
       </div>
       {children}
     </section>
@@ -93,7 +94,6 @@ function Readiness({ agent }: { agent: Agent }) {
     <Panel className="p-4">
       <SectionTitle
         title="Readiness"
-        description="What the sandbox will verify."
         action={<span className="font-mono text-[10px] text-accent">{score}%</span>}
       />
       <Progress value={score} className="mt-3" />
@@ -201,13 +201,7 @@ export default function AgentBuilderPage() {
   if (!form) {
     return (
       <div className="mx-auto max-w-3xl px-4 py-20 text-center">
-        <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-2">
-          Agent not found
-        </p>
-        <h1 className="mt-3 text-2xl font-medium text-ink">This agent doesn&apos;t exist yet.</h1>
-        <p className="mt-2 text-[13px] text-muted">
-          The agent may be stored in another browser profile, or it was never created.
-        </p>
+        <h1 className="text-2xl font-medium text-ink">Agent not found</h1>
         <Link href="/agents" className="mt-6 inline-block">
           <Button variant="primary">Back to agents</Button>
         </Link>
@@ -218,7 +212,6 @@ export default function AgentBuilderPage() {
   return (
     <div className="mx-auto max-w-[1440px] px-4 py-6 lg:px-7 lg:py-8">
       <PageHeader
-        eyebrow={`02 — Agent builder · ${form.id}`}
         title={
           <span className="flex flex-wrap items-center gap-3">
             {form.name}
@@ -281,10 +274,7 @@ export default function AgentBuilderPage() {
           <div className="space-y-6 p-5">
             {tab === "persona" ? (
               <>
-                <FormSection
-                  title="Identity"
-                  description="Who the customer is talking to, and how they introduce themselves."
-                >
+                <FormSection title="Identity">
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <Field label="Agent name">
                       <Input value={form.name} onChange={(event) => update("name", event.target.value)} />
@@ -303,10 +293,7 @@ export default function AgentBuilderPage() {
                   </Field>
                 </FormSection>
 
-                <FormSection
-                  title="Personality"
-                  description="Tone is a product setting — it shapes every response the model generates."
-                >
+                <FormSection title="Personality">
                   <Label>Tone</Label>
                   <div className="flex flex-wrap gap-1.5">
                     {TONES.map((tone) => (
@@ -341,10 +328,7 @@ export default function AgentBuilderPage() {
                   </Field>
                 </FormSection>
 
-                <FormSection
-                  title="System prompt"
-                  description="The full instruction set sent to the model. Keep policies in knowledge, not here."
-                >
+                <FormSection title="System prompt">
                   <Textarea
                     value={form.systemPrompt}
                     onChange={(event) => update("systemPrompt", event.target.value)}
@@ -359,10 +343,7 @@ export default function AgentBuilderPage() {
 
             {tab === "voice" ? (
               <>
-                <FormSection
-                  title="Languages"
-                  description="The agent detects language changes mid-call and replies in kind."
-                >
+                <FormSection title="Languages">
                   <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
                     {LANGUAGES.map((language) => {
                       const selected = form.languages.includes(language);
@@ -409,10 +390,7 @@ export default function AgentBuilderPage() {
                   </div>
                 </FormSection>
 
-                <FormSection
-                  title="Voice"
-                  description="Azure Neural voices. Real audio will stream through LiveKit when wired."
-                >
+                <FormSection title="Voice">
                   <div className="space-y-2">
                     {VOICES.map((voice) => {
                       const selected = form.voice === voice.id;
@@ -481,12 +459,7 @@ export default function AgentBuilderPage() {
                   </div>
 
                   <div className="mt-4 flex items-center justify-between rounded-none border border-line bg-surface-2/60 px-3 py-2.5">
-                    <div>
-                      <p className="text-[11.5px] font-medium text-ink">Voice preview</p>
-                      <p className="mt-0.5 text-[10px] text-muted-2">
-                        Sandbox mode — real TTS arrives with Azure keys.
-                      </p>
-                    </div>
+                    <p className="text-[11.5px] font-medium text-ink">Voice preview</p>
                     <Button
                       variant="secondary"
                       size="sm"
@@ -519,10 +492,7 @@ export default function AgentBuilderPage() {
 
             {tab === "knowledge" ? (
               <>
-                <FormSection
-                  title="Knowledge base"
-                  description="Policies, runbooks, and FAQs the agent can cite. Retrieved at call time."
-                >
+                <FormSection title="Knowledge base">
                   <Textarea
                     value={form.knowledge}
                     onChange={(event) => update("knowledge", event.target.value)}
@@ -535,10 +505,7 @@ export default function AgentBuilderPage() {
                   </div>
                 </FormSection>
 
-                <FormSection
-                  title="Sources"
-                  description="Sample documents. In production these sync from your help center or Drive."
-                >
+                <FormSection title="Sources">
                   <div className="space-y-2">
                     {sources.map((source) => (
                       <div
@@ -578,10 +545,7 @@ export default function AgentBuilderPage() {
                   </Button>
                 </FormSection>
 
-                <FormSection
-                  title="Retrieval"
-                  description="How many chunks the agent can pull into a single response."
-                >
+                <FormSection title="Retrieval">
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <Range label="Top K" value={4} min={1} max={10} display="4 chunks" onChange={() => undefined} />
                     <Range label="Minimum similarity" value={72} min={0} max={100} display="0.72" onChange={() => undefined} />
@@ -591,10 +555,7 @@ export default function AgentBuilderPage() {
             ) : null}
 
             {tab === "tools" ? (
-              <FormSection
-                title="Tools"
-                description="Each tool runs in the sandbox. Connect real systems before production."
-              >
+              <FormSection title="Tools">
                 <div className="space-y-2">
                   {TOOLS.map((tool) => {
                     const enabled = form.tools.includes(tool.id);
@@ -617,12 +578,7 @@ export default function AgentBuilderPage() {
                           <Wrench className="h-3.5 w-3.5" />
                         </span>
                         <div className="min-w-0 flex-1">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <p className="text-[12px] font-medium text-ink">{tool.name}</p>
-                            <Badge tone="outline" className="px-1.5 py-0 text-[8.5px]">
-                              Sandbox
-                            </Badge>
-                          </div>
+                          <p className="text-[12px] font-medium text-ink">{tool.name}</p>
                           <p className="mt-0.5 text-[10.5px] leading-relaxed text-muted">
                             {tool.description}
                           </p>
@@ -642,21 +598,12 @@ export default function AgentBuilderPage() {
                     );
                   })}
                 </div>
-                <div className="mt-4 rounded-none border border-amber/15 bg-amber/[0.04] px-3 py-2.5">
-                  <p className="text-[10.5px] leading-relaxed text-amber/90">
-                    Sandbox isolation is on. Tools return test data only — no production records are
-                    read or written.
-                  </p>
-                </div>
               </FormSection>
             ) : null}
 
             {tab === "escalation" ? (
               <>
-                <FormSection
-                  title="When to hand off"
-                  description="Escalation is a policy object, evaluated on every turn."
-                >
+                <FormSection title="When to hand off">
                   <div className="space-y-4">
                     <Switch
                       checked={form.escalation.onCustomerRequest}
@@ -687,7 +634,7 @@ export default function AgentBuilderPage() {
 
                 <FormSection
                   title="Confidence threshold"
-                  description="Below this score, the agent offers a human instead of guessing."
+                  description="Offer a human when model confidence drops below this value."
                 >
                   <Range
                     label="Escalate below"
@@ -725,7 +672,7 @@ export default function AgentBuilderPage() {
 
                 <FormSection
                   title="Trigger keywords"
-                  description="Extra phrases that should always escalate, in any supported language."
+                  description="Phrases that always trigger a handoff."
                 >
                   <div className="flex flex-wrap gap-1.5">
                     {form.escalation.keywords.map((keyword) => (
@@ -781,7 +728,7 @@ export default function AgentBuilderPage() {
 
                 <FormSection
                   title="Handoff message"
-                  description="What the customer hears right before the specialist joins."
+                  description="Played to the customer before the specialist joins."
                 >
                   <Textarea
                     value={form.escalation.message}
@@ -795,56 +742,27 @@ export default function AgentBuilderPage() {
         </Panel>
 
         <div className="space-y-4">
-          <Panel className="overflow-hidden">
-            <div className="dot-bg relative border-b border-line bg-gradient-to-b from-surface-2 to-transparent p-4">
-              <div className="flex items-center justify-between">
-                <Badge tone="accent" dot>
-                  Live preview
-                </Badge>
-                <span className="font-mono text-[9px] text-muted-2">preview audio</span>
-              </div>
-              <div className="mt-5 flex flex-col items-center text-center">
-                <AgentAvatar name={form.name} color={form.color} size="xl" status={form.status} />
-                <h3 className="mt-3 font-display text-[19px] font-normal text-ink">{form.name}</h3>
-                <p className="text-[10.5px] text-muted">{form.role}</p>
-                <div className="mt-2">
+          <Panel className="p-4">
+            <div className="flex items-center gap-3">
+              <AgentAvatar name={form.name} color={form.color} size="lg" status={form.status} />
+              <div className="min-w-0">
+                <h3 className="truncate font-display text-[17px] font-normal text-ink">{form.name}</h3>
+                <p className="truncate text-[10.5px] text-muted">{form.role}</p>
+                <div className="mt-1.5">
                   <LanguageStack languages={form.languages} />
                 </div>
-                <div className="mt-4 flex items-end justify-center gap-1">
-                  {[5, 10, 16, 22, 16, 26, 12, 18, 8, 14, 6].map((height, index) => (
-                    <span
-                      key={index}
-                      className="w-1 rounded-full bg-accent/60"
-                      style={{ height, opacity: 0.35 + (index % 3) * 0.2 }}
-                    />
-                  ))}
-                </div>
-              </div>
-              <div className="mt-5 rounded-none border border-line bg-surface-2 px-3 py-2.5">
-                <p className="text-[11px] leading-relaxed text-muted">&ldquo;{form.greeting}&rdquo;</p>
               </div>
             </div>
-            <div className="p-4">
-              <Link href={`/agents/${form.id}/sandbox`}>
-                <Button variant="primary" className="w-full">
-                  <FlaskConical className="h-3.5 w-3.5" />
-                  Open sandbox
-                </Button>
-              </Link>
-              <p className="mt-2 text-center text-[9.5px] text-muted-2">
-                Runs against sandbox tools and test data
-              </p>
+            <div className="mt-4 border-t border-line pt-3">
+              <Label>Opening line</Label>
+              <p className="text-[11px] leading-relaxed text-muted">&ldquo;{form.greeting}&rdquo;</p>
             </div>
           </Panel>
 
           <Readiness agent={form} />
 
           <Panel className="p-4">
-            <SectionTitle
-              title="Version history"
-              description="Every save is a new version."
-              action={<Copy className="h-3.5 w-3.5 text-muted-2" />}
-            />
+            <SectionTitle title="Version history" />
             <div className="mt-3 space-y-2">
               {[0, 1, 2].map((offset) => (
                 <div key={offset} className="flex items-center gap-2.5">
@@ -879,27 +797,6 @@ export default function AgentBuilderPage() {
                 <Save className="h-3 w-3" />
                 Save
               </Button>
-            </div>
-          </Panel>
-
-          <Panel className="p-4">
-            <div className="flex items-start gap-2.5">
-              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-none border border-amber/20 bg-amber/[0.07] text-amber">
-                <Sparkles className="h-3.5 w-3.5" />
-              </span>
-              <div>
-                <p className="text-[11.5px] font-medium text-ink">Sandbox only</p>
-                <p className="mt-1 text-[10px] leading-relaxed text-muted">
-                  This agent has no production tools or phone numbers. Connect LiveKit and Azure to
-                  deploy.
-                </p>
-                <Link
-                  href="/integrations"
-                  className="mt-2 inline-flex items-center gap-1 text-[10px] font-medium text-accent hover:underline"
-                >
-                  View integrations <ArrowUpRight className="h-2.5 w-2.5" />
-                </Link>
-              </div>
             </div>
           </Panel>
         </div>

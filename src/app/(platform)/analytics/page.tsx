@@ -8,15 +8,11 @@ import {
   CalendarDays,
   ChevronRight,
   Download,
-  Gauge,
   Headphones,
-  Languages,
   MessageSquare,
   ShieldCheck,
-  Sparkles,
+  Star,
   Timer,
-  TriangleAlert,
-  Users,
 } from "lucide-react";
 import { useAllSessions } from "@/lib/live-store";
 import {
@@ -31,7 +27,7 @@ import {
 } from "@/lib/analytics";
 import { formatDuration, formatHandleTime, LANGUAGE_SHORT } from "@/lib/utils";
 import { PageHeader, SessionStatusBadge } from "@/components/dashboard";
-import { Badge, Button, Panel, Progress, SectionTitle } from "@/components/ui";
+import { Button, Panel, Progress, SectionTitle } from "@/components/ui";
 import {
   ContainmentTrend,
   Donut,
@@ -70,13 +66,7 @@ export default function AnalyticsPage() {
   return (
     <div className="mx-auto max-w-[1440px] px-4 py-6 lg:px-7 lg:py-8">
       <PageHeader
-        eyebrow="05 — Analytics · last 30 days · sandbox dataset"
-        title={
-          <>
-            Where AI holds, and where it <span className="font-serif italic text-accent">hands off</span>.
-          </>
-        }
-        description="Containment, escalation drivers, language performance, and the exact sessions that need attention. Every metric is traceable to a transcript."
+        title="Analytics"
         actions={
           <>
             <Button variant="outline">
@@ -133,7 +123,7 @@ export default function AnalyticsPage() {
         <Panel className="p-3.5">
           <div className="flex items-center justify-between">
             <p className="font-mono text-[9px] uppercase tracking-[0.14em] text-muted-2">CSAT</p>
-            <Sparkles className="h-3.5 w-3.5 text-violet" />
+            <Star className="h-3.5 w-3.5 text-violet" />
           </div>
           <p className="mt-2 text-[24px] font-semibold tracking-[-0.04em] text-ink">
             {overview.avgCsat.toFixed(1)}
@@ -148,10 +138,7 @@ export default function AnalyticsPage() {
       <div className="mt-4 grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1.55fr)_minmax(320px,1fr)]">
         <Panel className="overflow-hidden">
           <div className="flex flex-col justify-between gap-3 p-4 pb-0 sm:flex-row sm:items-start">
-            <SectionTitle
-              title="Sessions & containment"
-              description="Daily view of the last 14 days."
-            />
+            <SectionTitle title="Sessions & containment" description="Last 14 days" />
             <div className="flex rounded-none border border-line bg-surface p-0.5">
               <button
                 type="button"
@@ -183,11 +170,7 @@ export default function AnalyticsPage() {
         </Panel>
 
         <Panel className="flex flex-col p-4">
-          <SectionTitle
-            title="Why calls escalate"
-            description="Transfer reasons · share of all handoffs."
-            action={<TriangleAlert className="h-4 w-4 text-amber" />}
-          />
+          <SectionTitle title="Escalation reasons" description="Share of all handoffs" />
           <div className="mt-4 space-y-3.5">
             {reasons.slice(0, 5).map((reason, index) => (
               <div key={reason.reason}>
@@ -210,20 +193,12 @@ export default function AnalyticsPage() {
               </div>
             ))}
           </div>
-          <div className="mt-auto pt-4">
-            <div className="rounded-none border border-amber/15 bg-amber/[0.04] p-3">
-              <p className="text-[10.5px] leading-relaxed text-amber/90">
-                Policy exceptions are the largest driver. That is a product decision — not a model
-                limitation.
-              </p>
-            </div>
-          </div>
         </Panel>
       </div>
 
       <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
         <Panel className="p-4">
-          <SectionTitle title="Language performance" description="Detected language vs. containment." />
+          <SectionTitle title="Containment by language" />
           <div className="mt-3 grid grid-cols-[140px_minmax(0,1fr)] items-center gap-3">
             <Donut data={languageDonut} centerValue={`${overview.total.toLocaleString()}`} centerLabel="calls" />
             <div className="space-y-3">
@@ -252,7 +227,7 @@ export default function AnalyticsPage() {
         </Panel>
 
         <Panel className="p-4">
-          <SectionTitle title="Sentiment" description="Post-call classification." />
+          <SectionTitle title="Sentiment" />
           <div className="mt-3 grid grid-cols-[140px_minmax(0,1fr)] items-center gap-3">
             <Donut
               data={sentimentDonut}
@@ -282,7 +257,7 @@ export default function AnalyticsPage() {
         </Panel>
 
         <Panel className="p-4 md:col-span-2 xl:col-span-1">
-          <SectionTitle title="Intent heatmap" description="Volume and escalation rate." />
+          <SectionTitle title="Intents" description="Volume and escalation rate" />
           <div className="mt-2">
             <IntentBars data={intents} height={190} />
           </div>
@@ -298,10 +273,7 @@ export default function AnalyticsPage() {
       <div className="mt-4 grid grid-cols-1 items-start gap-4 xl:grid-cols-[minmax(0,1.55fr)_minmax(320px,1fr)]">
         <Panel className="overflow-hidden">
           <div className="flex items-center justify-between border-b border-line px-4 py-3">
-            <SectionTitle
-              title="Agent performance"
-              description="Containment, transfers, and CSAT by active agent."
-            />
+            <SectionTitle title="Agent performance" />
             <Link href="/agents" className="text-[10px] text-muted hover:text-ink">
               Manage agents
             </Link>
@@ -369,23 +341,11 @@ export default function AnalyticsPage() {
               </tbody>
             </table>
           </div>
-          <div className="flex flex-wrap items-center justify-between gap-2 border-t border-line bg-surface-2 px-4 py-2.5">
-            <p className="text-[9.5px] text-muted-2">
-              {performance.length} active agents · {overview.total.toLocaleString()} sessions
-            </p>
-            <p className="font-mono text-[8.5px] uppercase tracking-[0.08em] text-muted-2">
-              Zain · draft · excluded
-            </p>
-          </div>
         </Panel>
 
         <div className="space-y-4">
           <Panel className="p-4">
-            <SectionTitle
-              title="Where AI needs help"
-              description="Ranked by measurable impact."
-              action={<Gauge className="h-4 w-4 text-muted-2" />}
-            />
+            <SectionTitle title="Insights" />
             <div className="mt-3 space-y-2.5">
               {insights.map((insight) => (
                 <div key={insight.title} className="rounded-none border border-line bg-surface-2/50 p-3">
@@ -407,9 +367,13 @@ export default function AnalyticsPage() {
 
           <Panel className="p-4">
             <SectionTitle
-              title="Failed & abandoned"
+              title="Abandoned sessions"
               description={`${overview.abandoned} sessions · ${overview.abandonmentRate.toFixed(1)}%`}
-              action={<TriangleAlert className="h-3.5 w-3.5 text-red" />}
+              action={
+                <Link href="/sessions" className="text-[10px] text-muted hover:text-ink">
+                  View all
+                </Link>
+              }
             />
             <div className="mt-3 space-y-2">
               {abandoned.map((session) => (
@@ -430,19 +394,6 @@ export default function AnalyticsPage() {
               ))}
             </div>
           </Panel>
-        </div>
-      </div>
-
-      <div className="mt-4 flex flex-wrap items-center justify-between gap-2 rounded-none border border-line bg-surface-2 px-4 py-2.5">
-        <p className="flex items-center gap-2 text-[9.5px] text-muted-2">
-          <Users className="h-3 w-3 text-accent/60" />
-          1,284 simulated sessions · 30-day window · all metrics derived from the same dataset
-        </p>
-        <div className="flex items-center gap-2">
-          <Badge tone="outline">
-            <Languages className="mr-0.5 h-2.5 w-2.5" /> EN · UR · HI
-          </Badge>
-          <Badge tone="outline">Sandbox analytics</Badge>
         </div>
       </div>
     </div>

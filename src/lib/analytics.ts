@@ -198,19 +198,19 @@ export function computeInsights(sessions: SessionRecord[]) {
     {
       tone: "risk" as const,
       title: `${reasons[0]?.reason ?? "Policy exceptions"} drive ${Math.round(reasons[0]?.share ?? 0)}% of transfers`,
-      body: "The top escalation driver is a policy gap, not a language or tone problem. Extend AI authority or add a guided approval step.",
+      body: "Consider raising the AI approval limit or adding a guided approval step.",
       action: "Review policy",
     },
     {
       tone: "warning" as const,
-      title: `${worstLanguage.label} calls contain ${Math.round(100 - worstLanguage.containment)}% less often`,
-      body: `Containment is ${worstLanguage.containment.toFixed(1)}% for ${worstLanguage.label} versus ${overview.containmentRate.toFixed(1)}% overall. Review vocabulary and voice latency for this locale.`,
+      title: `${worstLanguage.label} has the lowest containment`,
+      body: `${worstLanguage.containment.toFixed(1)}% for ${worstLanguage.label} vs. ${overview.containmentRate.toFixed(1)}% overall.`,
       action: "Open language report",
     },
     {
       tone: "info" as const,
       title: `"${worstIntent.intent}" escalates ${Math.round(worstIntent.escalationRate)}% of the time`,
-      body: "Add a tool or a narrower policy so the agent can resolve the first request without a human.",
+      body: "Adding a tool or narrower policy could resolve more of these without a handoff.",
       action: "Improve knowledge",
     },
   ];

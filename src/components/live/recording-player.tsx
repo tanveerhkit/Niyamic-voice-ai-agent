@@ -29,12 +29,7 @@ export function RecordingPlayer({ durationSec }: { durationSec: number }) {
   return (
     <div className="rounded-none border border-line bg-surface-2/50 p-3">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Badge tone="outline">Recording</Badge>
-          <span className="font-mono text-[8.5px] uppercase tracking-[0.1em] text-muted-2">
-            session audio
-          </span>
-        </div>
+        <Badge tone="outline">Recording</Badge>
         <button
           type="button"
           onClick={() => {
