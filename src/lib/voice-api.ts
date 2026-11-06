@@ -23,6 +23,8 @@ export interface DataStats {
 
 export interface VoiceHealth {
   status: "ok";
+  /** How far this machine's clock is behind (+) or ahead (-) of LiveKit's. */
+  clockSkewSeconds: number;
   voice: {
     ready: boolean;
     providers: {

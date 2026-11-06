@@ -223,6 +223,7 @@ export default function SessionDetailPage() {
                     ))}
                   </ul>
                 </div>
+                {summary.keyMoments.length ? (
                 <div className="rounded-none border border-line bg-surface-2/50 p-3">
                   <p className="font-mono text-[8.5px] uppercase tracking-[0.12em] text-muted-2">
                     Key moments
@@ -255,6 +256,7 @@ export default function SessionDetailPage() {
                     ))}
                   </div>
                 </div>
+                ) : null}
               </div>
             </div>
           </Panel>

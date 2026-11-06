@@ -46,7 +46,8 @@ DEFAULT_GREETING = "Thanks for calling. How can I help you today?"
 CALL_RULES = """\
 You are on a live voice call with a customer.
 - Keep each reply to one to three short sentences. Speak naturally. Never use lists, markdown, emojis or links.
-- Before calling a tool, say one short line such as "Let me check that for you."
+- Say a short line such as "Let me check that for you." only when you are about to call a tool. If the \
+answer is already in this conversation, answer directly.
 - Human transfer is not available on this line. If the caller asks for a person, say a specialist will call \
 them back, and keep helping.
 
@@ -60,9 +61,12 @@ search_knowledge_base.
 If the results do not contain the answer, say you don't have that information.
 - If no record matches, say so and ask the caller to confirm the number. Never substitute a different record.
 - If a lookup returns several customers or orders, confirm which one the caller means before sharing details.
+- When asked about an order's status, give the status, the number of successful payments, and any \
+outstanding balance, for example: "Your order is processing. You've made two payments, and 1,500 rupees \
+remains outstanding."
 - Describe payment history from the payment rows returned, including each payment's status.
 - Say amounts with the currency shown in the data, for example "1,500 rupees" for 1500 in a column marked ₹. \
-Read order numbers digit by digit."""
+Read order numbers digit by digit. Say dates naturally, for example "November 10" for 2026-11-10."""
 
 
 def build_instructions(profile: dict[str, Any]) -> str:
@@ -194,6 +198,26 @@ class SupportAgent(Agent):
         return format_documents(question, passages)
 
 
+def build_llm() -> openai.LLM:
+    options: dict[str, Any] = {}
+    if settings.llm_temperature is not None:
+        options["temperature"] = settings.llm_temperature
+    if settings.uses_openai_v1:
+        return openai.LLM(
+            model=settings.openai_model,
+            base_url=settings.openai_base_url,
+            api_key=settings.openai_api_key,
+            **options,
+        )
+    return openai.LLM.with_azure(
+        azure_deployment=settings.azure_openai_deployment,
+        azure_endpoint=settings.azure_openai_endpoint,
+        api_key=settings.azure_openai_api_key,
+        api_version=settings.azure_openai_api_version,
+        **options,
+    )
+
+
 def prewarm(proc: JobProcess) -> None:
     knowledge.init_storage()
     proc.userdata["vad"] = silero.VAD.load()
@@ -214,13 +238,7 @@ async def entrypoint(ctx: JobContext) -> None:
             smart_format=True,
             api_key=settings.deepgram_api_key,
         ),
-        llm=openai.LLM.with_azure(
-            azure_deployment=settings.azure_openai_deployment,
-            azure_endpoint=settings.azure_openai_endpoint,
-            api_key=settings.azure_openai_api_key,
-            api_version=settings.azure_openai_api_version,
-            temperature=0.3,
-        ),
+        llm=build_llm(),
         tts=smallestai.TTS(
             api_key=settings.smallest_api_key,
             model=settings.smallest_model,

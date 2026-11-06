@@ -30,7 +30,7 @@ python -m venv .venv
 pip install -r requirements.txt
 ```
 
-Copy `.env.example` to `.env.local` in the repository root and fill in the LiveKit, Azure OpenAI, Deepgram, and Smallest AI keys. Then run two processes from `backend/`:
+Copy `.env.example` to `.env.local` in the repository root and fill in the LiveKit, Azure OpenAI, Deepgram, and Smallest AI keys. Azure OpenAI accepts either the v1 endpoint form (`OPENAI_BASE_URL` ending in `/openai/v1`, `OPENAI_API_KEY`, `OPENAI_MODEL`) or the classic form (`AZURE_OPENAI_ENDPOINT`, `AZURE_OPENAI_API_KEY`, `AZURE_OPENAI_DEPLOYMENT`). Then run two processes from `backend/`:
 
 ```bash
 uvicorn api:app --port 8000
@@ -262,6 +262,7 @@ python agent.py start         # voice agent (production)
 
 - **Port 3000 is taken.** Use the port Next.js prints. Do not kill another project's dev server.
 - **"Can't reach the voice backend."** Start `uvicorn api:app --port 8000` from `backend/`, or set `NEXT_PUBLIC_VOICE_API_URL` if it runs elsewhere.
+- **LiveKit says "invalid token", or Integrations warns about the clock.** The machine running the backend has the wrong system time. The backend measures the offset from LiveKit and adjusts call tokens, but turn on automatic time sync so every service sees the right time.
 - **The agent never joins a call.** `python agent.py dev` must be running with the same LiveKit credentials as the API. Its log shows `registered worker` when it is connected.
 - **The agent can't find uploaded data.** Run `uvicorn` and `agent.py` from the same `backend/` folder (or the same `DATA_DIR`), and check the file shows **Ready** on the Data page.
 - **Supervisor queue is empty after starting a call.** Confirm both tabs are in the same browser profile and origin. Refresh the supervisor tab once; BroadcastChannel sync resumes.
