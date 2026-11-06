@@ -224,7 +224,7 @@ export default function SandboxPage() {
             does.
           </>
         }
-        description="Mock tools, test data, no production access. Try an escalation, a language switch, or a policy edge case."
+        description="Sandbox tools, test data, no production access. Try an escalation, a language switch, or a policy edge case."
         actions={
           <>
             <Link href={`/agents/${agent.id}`}>
@@ -263,7 +263,7 @@ export default function SandboxPage() {
                   </Badge>
                 </div>
                 <p className="font-mono text-[9px] uppercase tracking-[0.1em] text-muted-2">
-                  {agent.id} · mock tools · v{agent.version}
+                  {agent.id} · sandbox tools · v{agent.version}
                 </p>
               </div>
             </div>
@@ -405,7 +405,7 @@ export default function SandboxPage() {
               </Button>
             </div>
             <p className="mt-2 text-center font-mono text-[8.5px] uppercase tracking-[0.12em] text-muted-2">
-              Sandbox · mock responses · no production data
+              Sandbox · simulated responses · no production data
             </p>
           </div>
         </Panel>
@@ -490,7 +490,7 @@ export default function SandboxPage() {
                   </p>
                   <div className="mt-2 flex items-center gap-2 font-mono text-[9px] text-muted-2">
                     <Gauge className="h-3 w-3" />
-                    12 scenarios · mock evaluator
+                    12 scenarios · sandbox evaluator
                   </div>
                 </div>
                 <Button

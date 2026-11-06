@@ -194,7 +194,7 @@ export default function AgentsPage() {
             <span className="font-mono text-[9px] uppercase tracking-[0.14em]">Tools</span>
           </div>
           <p className="mt-2 text-[22px] font-semibold tracking-[-0.04em] text-ink">5</p>
-          <p className="text-[10px] text-muted-2">mock integrations available</p>
+          <p className="text-[10px] text-muted-2">sandbox integrations available</p>
         </Panel>
       </div>
 
@@ -248,7 +248,7 @@ export default function AgentsPage() {
       <div className="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-line bg-surface-2 px-4 py-3">
         <div className="flex items-center gap-2 text-[10.5px] text-muted-2">
           <CheckCircle2 className="h-3.5 w-3.5 text-accent/70" />
-          Changes are saved locally in mock mode. Real agent versions will deploy through LiveKit dispatch.
+          Changes are saved locally in sandbox mode. Real agent versions will deploy through LiveKit dispatch.
         </div>
         <Badge tone="outline">Human transfer enabled</Badge>
       </div>

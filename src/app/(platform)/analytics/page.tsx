@@ -70,7 +70,7 @@ export default function AnalyticsPage() {
   return (
     <div className="mx-auto max-w-[1440px] px-4 py-6 lg:px-7 lg:py-8">
       <PageHeader
-        eyebrow="05 — Analytics · last 30 days · mock dataset"
+        eyebrow="05 — Analytics · last 30 days · sandbox dataset"
         title={
           <>
             Where AI holds, and where it <span className="font-serif italic text-accent">hands off</span>.
@@ -442,7 +442,7 @@ export default function AnalyticsPage() {
           <Badge tone="outline">
             <Languages className="mr-0.5 h-2.5 w-2.5" /> EN · UR · HI
           </Badge>
-          <Badge tone="outline">Mock analytics</Badge>
+          <Badge tone="outline">Sandbox analytics</Badge>
         </div>
       </div>
     </div>

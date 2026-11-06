@@ -467,7 +467,7 @@ export default function OverviewPage() {
         <div className="flex items-center gap-2 text-[10.5px] text-muted-2">
           <PhoneCall className="h-3.5 w-3.5 text-muted-2" />
           <span>
-            Demo dataset: 1,284 simulated sessions · all times in local timezone · mock runtime
+            Demo dataset: 1,284 simulated sessions · all times in local timezone · sandbox runtime
           </span>
         </div>
         <div className="flex items-center gap-2">

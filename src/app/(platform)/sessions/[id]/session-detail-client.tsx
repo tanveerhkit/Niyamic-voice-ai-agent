@@ -422,7 +422,7 @@ export default function SessionDetailPage() {
           </Panel>
 
           <Panel className="p-4">
-            <SectionTitle title="Recording" description="Room composite · mock for now." />
+            <SectionTitle title="Recording" description="Room composite recording." />
             <div className="mt-3">
               <RecordingPlayer durationSec={record.durationSec} />
             </div>

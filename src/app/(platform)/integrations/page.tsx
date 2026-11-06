@@ -68,7 +68,7 @@ const INTEGRATIONS: Integration[] = [
     name: "Azure OpenAI",
     vendor: "Reasoning",
     description:
-      "Turn-by-turn reasoning, tool selection, and escalation decisions. The mock runtime already follows the same event shape the model will produce.",
+      "Turn-by-turn reasoning, tool selection, and escalation decisions. The sandbox runtime already follows the same event shape the model will produce.",
     icon: <Sparkles className="h-4 w-4" />,
     status: "queued",
     tone: "violet",
@@ -81,11 +81,11 @@ const INTEGRATIONS: Integration[] = [
     name: "CRM",
     vendor: "Customer records",
     description:
-      "Read customer history before the greeting and write a structured note after the call. Currently backed by local mock tools.",
+      "Read customer history before the greeting and write a structured note after the call. Currently backed by local sandbox tools.",
     icon: <Database className="h-4 w-4" />,
     status: "connected",
     tone: "accent",
-    detail: "Mock provider active — order lookup, CRM note, and calendar tools",
+    detail: "Sandbox provider active — order lookup, CRM note, and calendar tools",
     env: ["CRM_BASE_URL", "CRM_API_TOKEN"],
     capabilities: ["Order lookup", "CRM note", "Callback scheduling"],
   },
@@ -220,11 +220,11 @@ export default function IntegrationsPage() {
         eyebrow="06 — Integrations · environment"
         title={
           <>
-            Mock today. <span className="font-serif italic text-accent">Real audio</span> when the keys
+            Sandbox today. <span className="font-serif italic text-accent">Real audio</span> when the keys
             land.
           </>
         }
-        description="The full product runs on a local mock runtime with no credentials. Each integration below swaps in behind the same event model — no screen or flow needs to change."
+        description="The full product runs on a local sandbox runtime with no credentials. Each integration below swaps in behind the same event model — no screen or flow needs to change."
         actions={
           <>
             <Link href="/agents/ag_ayesha">
@@ -252,7 +252,7 @@ export default function IntegrationsPage() {
           <p className="mt-2 text-[22px] font-semibold tracking-[-0.04em] text-green">
             {counts.connected}
           </p>
-          <p className="text-[10px] text-muted-2">mock provider active</p>
+          <p className="text-[10px] text-muted-2">sandbox provider active</p>
         </Panel>
         <Panel className="p-3.5">
           <div className="flex items-center gap-2 text-muted-2">
@@ -275,7 +275,7 @@ export default function IntegrationsPage() {
             <ShieldCheck className="h-3.5 w-3.5 text-accent" />
             <span className="font-mono text-[9px] uppercase tracking-[0.14em]">Mode</span>
           </div>
-          <p className="mt-2 text-[22px] font-semibold tracking-[-0.04em] text-accent">Mock</p>
+          <p className="mt-2 text-[22px] font-semibold tracking-[-0.04em] text-accent">Sandbox</p>
           <p className="text-[10px] text-muted-2">no production data touched</p>
         </Panel>
       </div>
@@ -297,7 +297,7 @@ export default function IntegrationsPage() {
             <Switch
               checked={mockRuntime}
               onChange={setMockRuntime}
-              label="Mock runtime"
+              label="Sandbox runtime"
               description="Use the scripted call engine, localStorage session store, and BroadcastChannel handoff."
             />
             <Switch
@@ -316,7 +316,7 @@ export default function IntegrationsPage() {
               {[
                 ["Scripted call engine", "LiveKit agent worker + Azure STT/LLM/TTS pipeline"],
                 ["localStorage + BroadcastChannel", "LiveKit room state + server-side session store"],
-                ["Mock order + refund tools", "Your CRM and payment provider APIs"],
+                ["Sandbox order + refund tools", "Your CRM and payment provider APIs"],
                 ["Seeded analytics", "Warehouse queries over real session events"],
               ].map(([now, later]) => (
                 <div key={now} className="flex flex-col gap-0.5 border-b border-line pb-2 last:border-0 last:pb-0">
@@ -375,7 +375,7 @@ export default function IntegrationsPage() {
 
           <div className="flex items-center justify-between rounded-xl border border-line bg-surface-2 px-3 py-2.5">
             <span className="font-mono text-[8.5px] uppercase tracking-[0.1em] text-muted-2">
-              Mock runtime · v0.1
+              Sandbox runtime · v0.1
             </span>
             <Badge tone="amber" dot>
               Sandbox

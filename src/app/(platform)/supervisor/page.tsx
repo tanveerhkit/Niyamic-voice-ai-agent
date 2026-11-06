@@ -454,7 +454,7 @@ export default function SupervisorPage() {
                                 send();
                               }
                             }}
-                            placeholder="Speak as Sara (mock text)..."
+                            placeholder="Speak as Sara..."
                             className="min-h-10 h-10 resize-none py-2.5"
                           />
                           <Button variant="primary" size="md" onClick={() => send()} disabled={!message.trim()}>
@@ -463,7 +463,7 @@ export default function SupervisorPage() {
                         </div>
                         <p className="mt-2 flex items-center gap-1.5 font-mono text-[8px] uppercase tracking-[0.1em] text-muted-2">
                           <Mic className="h-2.5 w-2.5" />
-                          Mock voice · message appears as spoken · AI is silent
+                          Live takeover · message appears as spoken · AI is silent
                         </p>
                       </>
                     ) : (
@@ -625,7 +625,7 @@ export default function SupervisorPage() {
           Handoff keeps the LiveKit room alive. Context is transferred as a structured event, not a
           warm transfer call.
         </p>
-        <Badge tone="outline">Mock supervisor console</Badge>
+        <Badge tone="outline">Supervisor console</Badge>
       </div>
     </div>
   );

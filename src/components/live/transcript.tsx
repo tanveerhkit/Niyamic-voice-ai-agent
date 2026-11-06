@@ -126,7 +126,7 @@ export function Transcript({
 
         {session.paused ? (
           <div className="rounded-lg border border-amber/20 bg-amber/[0.05] px-3 py-2 text-center text-[10px] text-amber">
-            Call paused · mock audio is silent
+            Call paused · audio is silent
           </div>
         ) : null}
       </div>

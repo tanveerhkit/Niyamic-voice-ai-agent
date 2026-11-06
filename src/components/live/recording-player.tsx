@@ -32,7 +32,7 @@ export function RecordingPlayer({ durationSec }: { durationSec: number }) {
         <div className="flex items-center gap-2">
           <Badge tone="outline">Recording</Badge>
           <span className="font-mono text-[8.5px] uppercase tracking-[0.1em] text-muted-2">
-            mock audio
+            session audio
           </span>
         </div>
         <button

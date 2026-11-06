@@ -107,7 +107,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
         <div className="flex items-center gap-2">
           <span className="h-1.5 w-1.5 rounded-full bg-amber pulse-soft" />
           <span className="font-mono text-[8.5px] uppercase tracking-[0.16em] text-muted">
-            Sandbox · Mock mode
+            Sandbox active
           </span>
         </div>
       </div>
@@ -149,7 +149,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
           <div className="flex items-center gap-2">
             <Sparkles className="h-3.5 w-3.5 text-[#f8f7f6]/70" />
             <p className="font-mono text-[8.5px] uppercase tracking-[0.16em] text-[#f8f7f6]">
-              Mock runtime online
+              Sandbox runtime online
             </p>
           </div>
           <p className="mt-2 font-display text-[17px] font-light leading-snug tracking-[-0.02em] text-[#f8f7f6]/90">
@@ -244,7 +244,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <Kbd>⌘K</Kbd>
             </div>
             <Badge tone="amber" className="hidden sm:inline-flex">
-              Mock
+              Sandbox
             </Badge>
             <Link href="/supervisor" className="hidden sm:block">
               <Button variant="secondary" size="sm">

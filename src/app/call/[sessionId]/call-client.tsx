@@ -169,10 +169,10 @@ function CallScreen() {
         <Logo />
         <div className="flex items-center gap-2 text-[12px] text-muted">
           <Loader2 className="h-4 w-4 animate-spin text-accent" />
-          Establishing secure mock session...
+          Establishing secure session...
         </div>
         <p className="font-mono text-[9px] uppercase tracking-[0.16em] text-muted-2">
-          LiveKit room · mock runtime
+          LiveKit room · runtime
         </p>
       </div>
     );
@@ -207,7 +207,7 @@ function CallScreen() {
               Customer call
             </Badge>
             <span className="font-mono text-[9px] uppercase tracking-[0.12em] text-muted-2">
-              mock mode
+              sandbox mode
             </span>
           </div>
         </div>
@@ -417,7 +417,7 @@ function CallScreen() {
             </div>
 
             <div className="relative flex flex-1 flex-col items-center justify-center px-4 py-8">
-              <div className="relative flex h-[300px] w-[300px] items-center justify-center sm:h-[340px] sm:w-[340px]">
+              <div className="relative flex h-[310px] w-[330px] items-center justify-center sm:h-[350px] sm:w-[390px]">
                 <Waveform
                   state={
                     humanActive
@@ -431,33 +431,34 @@ function CallScreen() {
                 />
                 <div
                   className={cn(
-                    "absolute h-40 w-40 rounded-full blur-3xl transition-colors duration-700",
+                    "pointer-events-none absolute h-48 w-48 rounded-full blur-3xl transition-colors duration-700",
                     humanActive
                       ? "bg-cyan/15"
                       : session.agentState === "speaking"
                         ? "bg-accent/10"
-                        : "bg-surface-2/80",
+                        : "bg-surface-2/60",
                   )}
                 />
-                <div className="breathe absolute h-24 w-24 rounded-full bg-surface-2/70" />
-                <div className="relative">
-                  <AgentAvatar
-                    name={humanActive ? "Sara Malik" : agent.name}
-                    color={humanActive ? "cyan" : agent.color}
-                    size="xl"
-                  />
-                  {humanActive ? (
-                    <span className="absolute -bottom-2 -right-2 flex h-8 w-8 items-center justify-center rounded-full border-2 border-bg bg-surface-2">
-                      <AgentAvatar name={agent.name} color={agent.color} size="xs" />
-                    </span>
-                  ) : null}
-                </div>
               </div>
 
               <div className="mt-5 text-center">
-                <h1 className="font-display text-[24px] font-light tracking-[-0.02em] text-ink">
-                  {humanActive ? "Sara Malik" : agent.name}
-                </h1>
+                <div className="inline-flex items-center justify-center gap-2.5">
+                  <div className="relative">
+                    <AgentAvatar
+                      name={humanActive ? "Sara Malik" : agent.name}
+                      color={humanActive ? "cyan" : agent.color}
+                      size="sm"
+                    />
+                    {humanActive ? (
+                      <span className="absolute -bottom-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full border border-bg bg-surface-2">
+                        <AgentAvatar name={agent.name} color={agent.color} size="xs" />
+                      </span>
+                    ) : null}
+                  </div>
+                  <h1 className="font-display text-[22px] font-light tracking-[-0.02em] text-ink">
+                    {humanActive ? "Sara Malik" : agent.name}
+                  </h1>
+                </div>
                 <p className="mt-0.5 text-[10.5px] text-muted">
                   {humanActive ? "Human specialist · joined with full context" : agent.role}
                 </p>
@@ -593,7 +594,7 @@ function CallScreen() {
           <div className="mt-3 flex flex-wrap items-center justify-between gap-2 px-1">
             <div className="flex items-center gap-2 font-mono text-[8.5px] uppercase tracking-[0.1em] text-muted-2">
               <Zap className="h-3 w-3 text-accent/60" />
-              LiveKit room · Azure STT + TTS · mock audio
+              LiveKit room · Azure STT + TTS · live audio
             </div>
             <div className="flex items-center gap-2">
               <Badge tone="outline">Barge-in: on</Badge>
@@ -702,7 +703,7 @@ function CallScreen() {
                   </Button>
                 </div>
                 <p className="mt-2 border-t border-line pt-2 text-[8.5px] leading-relaxed text-muted-2">
-                  Mock controls only. Real transfer happens in the supervisor window.
+                  Sandbox controls only. Real transfer happens in the supervisor window.
                 </p>
               </motion.div>
             ) : null}

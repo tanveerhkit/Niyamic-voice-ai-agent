@@ -484,7 +484,7 @@ export default function AgentBuilderPage() {
                     <div>
                       <p className="text-[11.5px] font-medium text-ink">Voice preview</p>
                       <p className="mt-0.5 text-[10px] text-muted-2">
-                        Mock mode — real TTS arrives with Azure keys.
+                        Sandbox mode — real TTS arrives with Azure keys.
                       </p>
                     </div>
                     <Button
@@ -537,7 +537,7 @@ export default function AgentBuilderPage() {
 
                 <FormSection
                   title="Sources"
-                  description="Mock documents. In production these sync from your help center or Drive."
+                  description="Sample documents. In production these sync from your help center or Drive."
                 >
                   <div className="space-y-2">
                     {sources.map((source) => (
@@ -574,7 +574,7 @@ export default function AgentBuilderPage() {
                     }
                   >
                     <Plus className="h-3.5 w-3.5" />
-                    Add mock source
+                    Add source
                   </Button>
                 </FormSection>
 
@@ -593,7 +593,7 @@ export default function AgentBuilderPage() {
             {tab === "tools" ? (
               <FormSection
                 title="Tools"
-                description="Each tool is mocked in the sandbox. Connect real systems before production."
+                description="Each tool runs in the sandbox. Connect real systems before production."
               >
                 <div className="space-y-2">
                   {TOOLS.map((tool) => {
@@ -620,7 +620,7 @@ export default function AgentBuilderPage() {
                           <div className="flex flex-wrap items-center gap-2">
                             <p className="text-[12px] font-medium text-ink">{tool.name}</p>
                             <Badge tone="outline" className="px-1.5 py-0 text-[8.5px]">
-                              Mock
+                              Sandbox
                             </Badge>
                           </div>
                           <p className="mt-0.5 text-[10.5px] leading-relaxed text-muted">
@@ -801,7 +801,7 @@ export default function AgentBuilderPage() {
                 <Badge tone="accent" dot>
                   Live preview
                 </Badge>
-                <span className="font-mono text-[9px] text-muted-2">mock audio</span>
+                <span className="font-mono text-[9px] text-muted-2">preview audio</span>
               </div>
               <div className="mt-5 flex flex-col items-center text-center">
                 <AgentAvatar name={form.name} color={form.color} size="xl" status={form.status} />
@@ -832,7 +832,7 @@ export default function AgentBuilderPage() {
                 </Button>
               </Link>
               <p className="mt-2 text-center text-[9.5px] text-muted-2">
-                Runs against mock tools and test data
+                Runs against sandbox tools and test data
               </p>
             </div>
           </Panel>
