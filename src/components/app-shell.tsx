@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLiveSessions } from "@/lib/live-store";
+import { useActiveCalls } from "@/lib/voice-api";
 import { AgentAvatar, Wordmark } from "./brand";
 import { StartCallButton } from "./start-call";
 
@@ -89,7 +90,9 @@ function NavLink({
 
 function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
-  const waiting = useLiveSessions().filter((session) => session.status === "escalating").length;
+  const waiting =
+    useLiveSessions().filter((session) => session.status === "escalating").length +
+    useActiveCalls().calls.filter((call) => call.handoff === "requested").length;
 
   return (
     <div className="flex h-full flex-col">

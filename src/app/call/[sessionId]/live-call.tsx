@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Room, RoomEvent } from "livekit-client";
+import { type Participant, ParticipantKind, Room, RoomEvent } from "livekit-client";
 import {
   RoomAudioRenderer,
   RoomContext,
@@ -11,6 +11,9 @@ import {
   useDataChannel,
   useLocalParticipant,
   useMediaDeviceSelect,
+  useRemoteParticipants,
+  useRoomContext,
+  useSpeakingParticipants,
   useTrackVolume,
   useTranscriptions,
   useVoiceAssistant,
@@ -22,6 +25,7 @@ import {
   CheckCircle2,
   ChevronRight,
   Database,
+  Headphones,
   Loader2,
   Mic,
   MicOff,
@@ -31,9 +35,9 @@ import {
   Volume2,
   X,
 } from "lucide-react";
-import type { Agent, Language, SessionRecord, Turn } from "@/lib/types";
+import type { Agent, Handoff, KeyMoment, Language, SessionRecord, Turn } from "@/lib/types";
 import { saveCompleted } from "@/lib/live-store";
-import { useVoiceHealth, voiceApi } from "@/lib/voice-api";
+import { HANDOFF_ATTRIBUTES, SPECIALIST_PREFIX, useVoiceHealth, voiceApi } from "@/lib/voice-api";
 import { cn, formatDuration } from "@/lib/utils";
 import { AgentAvatar, LivePill, Logo } from "@/components/brand";
 import { Button, Label, Panel, Progress, Select } from "@/components/ui";
@@ -62,9 +66,85 @@ interface CallSnapshot {
   turns: LiveTurn[];
   tools: ToolEvent[];
   customer: string | null;
+  handoffs: Handoff[];
 }
 
-const EMPTY_SNAPSHOT: CallSnapshot = { turns: [], tools: [], customer: null };
+const EMPTY_SNAPSHOT: CallSnapshot = { turns: [], tools: [], customer: null, handoffs: [] };
+
+const MISSED_NOTE = "No specialist joined in time; the caller was offered a call back.";
+
+/** Folds a change in the voice agent's handoff attributes into the call's handoff log. */
+function nextHandoffs(log: Handoff[], attributes: Record<string, string>, now: number): Handoff[] {
+  const state = attributes[HANDOFF_ATTRIBUTES.state] ?? "";
+  const last = log.at(-1);
+  const open = last && !last.completedAt && !last.note ? last : undefined;
+  const rest = open ? log.slice(0, -1) : log;
+  const reason = attributes[HANDOFF_ATTRIBUTES.reason] || open?.reason || "Transfer requested";
+
+  if (state === "requested") {
+    return open ? log : [...log, { status: "requested", reason, requestedAt: now }];
+  }
+  if (state === "accepted") {
+    if (open?.status === "accepted") return log;
+    return [
+      ...rest,
+      {
+        requestedAt: open?.requestedAt ?? now,
+        status: "accepted",
+        reason,
+        acceptedAt: now,
+        supervisor: attributes[HANDOFF_ATTRIBUTES.specialist] || "Specialist",
+      },
+    ];
+  }
+  if (state === "missed" && open?.status === "requested") {
+    return [...rest, { ...open, note: MISSED_NOTE }];
+  }
+  if (!state && open?.status === "accepted") {
+    return [...rest, { ...open, status: "completed", completedAt: now }];
+  }
+  return log;
+}
+
+/** Transcript markers for each handoff step, timed from the start of the call. */
+function handoffTurns(handoffs: Handoff[], startedAt: number, agentName: string): LiveTurn[] {
+  const at = (time: number) => Math.max(0, Math.round((time - startedAt) / 1000));
+  return handoffs.flatMap((handoff, index) => {
+    const turns: LiveTurn[] = [
+      {
+        id: `handoff-${index}-requested`,
+        role: "system",
+        text: `Transfer requested · ${handoff.reason}${handoff.note ? " · no specialist joined" : ""}`,
+        at: at(handoff.requestedAt),
+        final: true,
+      },
+    ];
+    if (handoff.acceptedAt) {
+      turns.push({
+        id: `handoff-${index}-accepted`,
+        role: "system",
+        text: `${handoff.supervisor ?? "Specialist"} joined the call`,
+        at: at(handoff.acceptedAt),
+        final: true,
+      });
+    }
+    if (handoff.completedAt) {
+      turns.push({
+        id: `handoff-${index}-completed`,
+        role: "system",
+        text: `Call returned to ${agentName}`,
+        at: at(handoff.completedAt),
+        final: true,
+      });
+    }
+    return turns;
+  });
+}
+
+function withHandoffs(turns: LiveTurn[], handoffs: Handoff[], startedAt: number, agentName: string) {
+  if (!handoffs.length) return turns;
+  return [...turns, ...handoffTurns(handoffs, startedAt, agentName)].sort((a, b) => a.at - b.at);
+}
 
 const STATE_COPY: Record<string, { label: string; wave: WaveState }> = {
   listening: { label: "Listening", wave: "listening" },
@@ -88,6 +168,7 @@ function buildRecord({
   turns,
   tools,
   customer,
+  handoffs,
 }: {
   id: string;
   agent: Agent;
@@ -96,14 +177,37 @@ function buildRecord({
   turns: LiveTurn[];
   tools: ToolEvent[];
   customer: string | null;
+  handoffs: Handoff[];
 }): SessionRecord {
   const answered = turns.some((turn) => turn.role === "customer");
   const lookups = tools.filter((tool) => tool.label.startsWith("Record lookup"));
   const searches = tools.filter((tool) => tool.label.startsWith("Document search"));
   const intent = lookups.length ? "Order inquiry" : searches.length ? "Policy question" : "General inquiry";
   const completed = tools.filter((tool) => tool.status === "done");
+  const joined = handoffs.find((handoff) => handoff.acceptedAt);
+  const seconds = (time: number) => Math.max(0, Math.round((time - startedAt) / 1000));
+
   const bullets = completed.map((tool) => `${tool.label}: ${tool.result ?? "done"}`);
-  if (!bullets.length) bullets.push(answered ? "Answered without a data lookup." : "The caller did not speak.");
+  if (!bullets.length && !handoffs.length) {
+    bullets.push(answered ? "Answered without a data lookup." : "The caller did not speak.");
+  }
+  for (const handoff of handoffs) {
+    bullets.push(
+      handoff.acceptedAt
+        ? `Handed to ${handoff.supervisor ?? "a specialist"}: ${handoff.reason}. Their conversation isn't transcribed.`
+        : `Transfer requested (${handoff.reason}), but no specialist joined.`,
+    );
+  }
+
+  const keyMoments: KeyMoment[] = [
+    ...completed.map((tool) => ({ at: seconds(tool.at), label: tool.label, type: "tool" as const })),
+    ...handoffs.flatMap((handoff) => [
+      { at: seconds(handoff.requestedAt), label: `Transfer requested · ${handoff.reason}`, type: "handoff" as const },
+      ...(handoff.acceptedAt
+        ? [{ at: seconds(handoff.acceptedAt), label: `${handoff.supervisor} joined`, type: "handoff" as const }]
+        : []),
+    ]),
+  ].sort((a, b) => a.at - b.at);
 
   return {
     id,
@@ -112,26 +216,36 @@ function buildRecord({
     language: turns.find((turn) => turn.role === "customer")?.language ?? "en",
     startedAt: new Date(startedAt).toISOString(),
     durationSec: Math.max(1, Math.round((endedAt - startedAt) / 1000)),
-    status: answered ? "completed" : "abandoned",
-    outcome: answered ? "resolved" : "unresolved",
+    status: joined ? "transferred" : answered ? "completed" : "abandoned",
+    outcome: handoffs.length ? "escalated" : answered ? "resolved" : "unresolved",
     sentiment: "neutral",
     intent,
-    handledBy: "ai",
+    handledBy: joined ? "hybrid" : "ai",
+    transferReason: handoffs[0]?.reason,
+    handoffs: handoffs.length ? handoffs : undefined,
     turnCount: turns.length,
     live: true,
-    transcript: turns.map(({ id, role, text, at, language }) => ({ id, role, text, at, language })),
+    transcript: withHandoffs(turns, handoffs, startedAt, agent.name).map(({ id, role, text, at, language }) => ({
+      id,
+      role,
+      text,
+      at,
+      language,
+    })),
     summary: {
       headline: customer ? `${intent} for ${customer}` : intent,
       intent,
-      outcome: answered ? "Answered by AI" : "No conversation",
+      outcome: joined
+        ? `Transferred to ${joined.supervisor ?? "a specialist"}`
+        : handoffs.length
+          ? "Specialist requested"
+          : answered
+            ? "Answered by AI"
+            : "No conversation",
       sentiment: "neutral",
-      resolution: answered ? "Completed" : "No response",
+      resolution: joined ? "Handed to a specialist" : handoffs.length ? "Call back offered" : answered ? "Completed" : "No response",
       bullets,
-      keyMoments: completed.map((tool) => ({
-        at: Math.max(0, Math.round((tool.at - startedAt) / 1000)),
-        label: tool.label,
-        type: "tool" as const,
-      })),
+      keyMoments,
       recommendation: "",
     },
   };
@@ -269,13 +383,21 @@ function InCall({
   snapshotRef: React.RefObject<() => CallSnapshot>;
   onEnd: () => void;
 }) {
-  const { state, agent: agentParticipant, audioTrack } = useVoiceAssistant();
+  const room = useRoomContext();
+  const { state, agent: agentParticipant, audioTrack, agentAttributes } = useVoiceAssistant();
   const agentVolume = useTrackVolume(audioTrack);
   const { canPlayAudio, startAudio } = useAudioPlayback();
   const { localParticipant, isMicrophoneEnabled } = useLocalParticipant();
   const transcriptions = useTranscriptions();
+  const specialist = useRemoteParticipants().find((participant) =>
+    participant.identity.startsWith(SPECIALIST_PREFIX),
+  );
+  const specialistSpeaking = useSpeakingParticipants().some((participant) =>
+    participant.identity.startsWith(SPECIALIST_PREFIX),
+  );
   const { health } = useVoiceHealth();
   const [tools, setTools] = useState<ToolEvent[]>([]);
+  const [handoffs, setHandoffs] = useState<Handoff[]>([]);
   const [now, setNow] = useState(() => Date.now());
   const transcriptRef = useRef<HTMLDivElement>(null);
 
@@ -283,6 +405,17 @@ function InCall({
     const timer = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(timer);
   }, []);
+
+  useEffect(() => {
+    const onAttributes = (_changed: Record<string, string>, participant: Participant) => {
+      if (participant.kind !== ParticipantKind.AGENT) return;
+      setHandoffs((log) => nextHandoffs(log, participant.attributes, Date.now()));
+    };
+    room.on(RoomEvent.ParticipantAttributesChanged, onAttributes);
+    return () => {
+      room.off(RoomEvent.ParticipantAttributesChanged, onAttributes);
+    };
+  }, [room]);
 
   useDataChannel(TOOL_TOPIC, (message) => {
     try {
@@ -319,17 +452,26 @@ function InCall({
   const customer = [...tools].reverse().find((tool) => tool.customer)?.customer ?? null;
   const elapsed = Math.max(0, Math.floor((now - startedAt) / 1000));
   const agentMissing = !agentParticipant && now - startedAt > AGENT_JOIN_TIMEOUT_MS;
-  const copy = agentParticipant
-    ? (STATE_COPY[state] ?? { label: "Connecting", wave: "muted" as WaveState })
-    : { label: "Waiting for agent", wave: "muted" as WaveState };
+  const handoffState = agentAttributes?.[HANDOFF_ATTRIBUTES.state] ?? "";
+  const team = agentAttributes?.[HANDOFF_ATTRIBUTES.team] || "a specialist";
+  const specialistName = specialist?.name || agentAttributes?.[HANDOFF_ATTRIBUTES.specialist] || "Specialist";
+  const copy = specialist
+    ? { label: specialistSpeaking ? "Speaking" : "On the call", wave: "human" as WaveState }
+    : agentParticipant
+      ? (STATE_COPY[state] ?? { label: "Connecting", wave: "muted" as WaveState })
+      : { label: "Waiting for agent", wave: "muted" as WaveState };
+  const timeline = useMemo(
+    () => withHandoffs(turns, handoffs, startedAt, agent.name),
+    [turns, handoffs, startedAt, agent.name],
+  );
 
   useEffect(() => {
     transcriptRef.current?.scrollTo({ top: transcriptRef.current.scrollHeight, behavior: "smooth" });
-  }, [turns]);
+  }, [timeline]);
 
   useEffect(() => {
-    snapshotRef.current = () => ({ turns, tools, customer });
-  }, [snapshotRef, turns, tools, customer]);
+    snapshotRef.current = () => ({ turns, tools, customer, handoffs });
+  }, [snapshotRef, turns, tools, customer, handoffs]);
 
   const pipeline = [
     { label: "Speech to text", provider: "Deepgram", detail: health?.voice.providers.deepgram.detail },
@@ -441,17 +583,42 @@ function InCall({
             </div>
           ) : null}
 
+          {specialist ? (
+            <div className="flex items-start gap-2.5 border-b border-cyan/20 bg-cyan/[0.05] px-4 py-3">
+              <Headphones className="mt-0.5 h-3.5 w-3.5 shrink-0 text-cyan" />
+              <p className="text-[11px] leading-relaxed text-cyan">
+                {specialistName} from {team} is on the call. {agent.name} is listening in silence.
+              </p>
+            </div>
+          ) : handoffState === "requested" ? (
+            <div className="flex items-start gap-2.5 border-b border-amber/20 bg-amber/[0.05] px-4 py-3">
+              <Loader2 className="mt-0.5 h-3.5 w-3.5 shrink-0 animate-spin text-amber" />
+              <p className="text-[11px] leading-relaxed text-amber">
+                Connecting you to {team}. {agent.name} stays on the line until they join.
+              </p>
+            </div>
+          ) : handoffState === "missed" ? (
+            <div className="flex items-start gap-2.5 border-b border-amber/20 bg-amber/[0.05] px-4 py-3">
+              <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber" />
+              <p className="text-[11px] leading-relaxed text-amber">
+                No one from {team} was free to join. A specialist will call you back.
+              </p>
+            </div>
+          ) : null}
+
           <div className="flex flex-1 flex-col items-center justify-center px-4 py-8">
             <div className="relative flex h-[310px] w-[330px] items-center justify-center sm:h-[350px] sm:w-[390px]">
               <Waveform
                 state={copy.wave}
-                active={Boolean(agentParticipant) && state !== "failed"}
+                active={Boolean(specialist) || (Boolean(agentParticipant) && state !== "failed")}
                 className="absolute inset-0"
               />
             </div>
             <div className="mt-5 text-center">
-              <h1 className="font-display text-[22px] font-light tracking-[-0.02em] text-ink">{agent.name}</h1>
-              <p className="mt-0.5 text-[10.5px] text-muted">{agent.role}</p>
+              <h1 className="font-display text-[22px] font-light tracking-[-0.02em] text-ink">
+                {specialist ? specialistName : agent.name}
+              </h1>
+              <p className="mt-0.5 text-[10.5px] text-muted">{specialist ? team : agent.role}</p>
               <span className="mt-3 inline-flex items-center gap-1.5 border border-accent/25 bg-accent/[0.07] px-2.5 py-1 font-mono text-[8.5px] uppercase tracking-[0.12em] text-accent">
                 <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-current" />
                 {copy.label}
@@ -482,10 +649,19 @@ function InCall({
             ref={transcriptRef}
             className="scrollbar-thin h-[520px] flex-1 space-y-3 overflow-y-auto p-4 xl:h-[calc(100vh-160px)]"
           >
-            {turns.length === 0 ? (
+            {timeline.length === 0 ? (
               <p className="pt-10 text-center text-[11.5px] text-muted">Waiting for the conversation...</p>
             ) : (
-              turns.map((turn) => (
+              timeline.map((turn) =>
+                turn.role === "system" ? (
+                  <div key={turn.id} className="flex items-center gap-2 py-1">
+                    <span className="h-px flex-1 bg-line" />
+                    <span className="max-w-[80%] border border-line bg-surface-2 px-2.5 py-1 text-center font-mono text-[8.5px] uppercase tracking-[0.1em] text-muted-2">
+                      {turn.text}
+                    </span>
+                    <span className="h-px flex-1 bg-line" />
+                  </div>
+                ) : (
                 <div key={turn.id}>
                   <div className="mb-1 flex items-center gap-1.5">
                     <span
@@ -508,7 +684,8 @@ function InCall({
                     {turn.text}
                   </div>
                 </div>
-              ))
+                ),
+              )
             )}
           </div>
         </Panel>
@@ -536,8 +713,17 @@ export function LiveCall({ sessionId, agent }: { sessionId: string; agent: Agent
   const finish = useCallback(() => {
     if (phaseRef.current !== "connected") return;
     phaseRef.current = "ended";
-    const { turns, tools, customer } = snapshotRef.current();
-    const result = buildRecord({ id: sessionId, agent, startedAt, endedAt: Date.now(), turns, tools, customer });
+    const { turns, tools, customer, handoffs } = snapshotRef.current();
+    const result = buildRecord({
+      id: sessionId,
+      agent,
+      startedAt,
+      endedAt: Date.now(),
+      turns,
+      tools,
+      customer,
+      handoffs,
+    });
     saveCompleted(result);
     setRecord(result);
     setPhase("ended");
