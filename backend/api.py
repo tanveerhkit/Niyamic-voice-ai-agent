@@ -10,13 +10,17 @@ from __future__ import annotations
 import json
 import secrets
 import shutil
+import time
 import uuid
 from contextlib import asynccontextmanager
 from datetime import timedelta
+from email.utils import parsedate_to_datetime
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlparse
 
+import httpx
+import jwt
 from fastapi import BackgroundTasks, FastAPI, File, HTTPException, Query, Response, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from livekit import api as livekit_api
@@ -46,11 +50,35 @@ app.add_middleware(
 # Status                                                                      #
 # --------------------------------------------------------------------------- #
 
+_clock_offset: tuple[float, float] | None = None  # (seconds, measured at)
+
+
+def livekit_clock_offset() -> float:
+    """Seconds to add to this machine's clock to match LiveKit's, cached for ten minutes.
+
+    LiveKit rejects tokens whose validity window does not cover its own time, so a
+    machine with a wrong clock would otherwise issue tokens that fail as "invalid".
+    """
+    global _clock_offset
+    if _clock_offset and time.time() - _clock_offset[1] < 600:
+        return _clock_offset[0]
+    offset = 0.0
+    if settings.livekit_url:
+        try:
+            url = settings.livekit_url.replace("wss://", "https://").replace("ws://", "http://")
+            response = httpx.head(url, timeout=3, follow_redirects=True)
+            offset = parsedate_to_datetime(response.headers["date"]).timestamp() - time.time()
+        except (httpx.HTTPError, KeyError, TypeError, ValueError):
+            offset = 0.0
+    _clock_offset = (offset, time.time())
+    return offset
+
 
 @app.get("/api/health")
 def health() -> dict[str, Any]:
     return {
         "status": "ok",
+        "clockSkewSeconds": round(livekit_clock_offset()) if settings.livekit_ready else 0,
         "voice": {
             "ready": settings.voice_ready,
             "providers": {
@@ -60,7 +88,7 @@ def health() -> dict[str, Any]:
                 },
                 "azureOpenAI": {
                     "configured": settings.azure_openai_ready,
-                    "detail": settings.azure_openai_deployment or None,
+                    "detail": settings.llm_model or None,
                 },
                 "deepgram": {
                     "configured": settings.deepgram_ready,
@@ -224,9 +252,14 @@ def create_token(request: TokenRequest) -> dict[str, Any]:
         .with_room_config(livekit_api.RoomConfiguration(agents=[dispatch]))
         .to_jwt()
     )
+    # Re-stamp the validity window on LiveKit's clock, with a little leeway.
+    claims = jwt.decode(token, options={"verify_signature": False})
+    offset = round(livekit_clock_offset())
+    claims["nbf"] += offset - 30
+    claims["exp"] += offset
     return {
         "serverUrl": settings.livekit_url,
-        "participantToken": token,
+        "participantToken": jwt.encode(claims, settings.livekit_api_secret, algorithm="HS256"),
         "roomName": room_name,
         "participantIdentity": identity,
     }

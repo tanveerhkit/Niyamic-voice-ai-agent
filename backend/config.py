@@ -31,10 +31,16 @@ class Settings:
     livekit_url: str
     livekit_api_key: str
     livekit_api_secret: str
+    # Azure OpenAI v1 / OpenAI-compatible endpoint (base URL + model)...
+    openai_api_key: str
+    openai_base_url: str
+    openai_model: str
+    # ...or classic Azure OpenAI (endpoint + deployment + API version).
     azure_openai_endpoint: str
     azure_openai_api_key: str
     azure_openai_deployment: str
     azure_openai_api_version: str
+    llm_temperature: float | None
     deepgram_api_key: str
     deepgram_model: str
     deepgram_language: str
@@ -51,10 +57,18 @@ class Settings:
         return bool(self.livekit_url and self.livekit_api_key and self.livekit_api_secret)
 
     @property
+    def uses_openai_v1(self) -> bool:
+        return bool(self.openai_base_url and self.openai_api_key and self.openai_model)
+
+    @property
     def azure_openai_ready(self) -> bool:
-        return bool(
+        return self.uses_openai_v1 or bool(
             self.azure_openai_endpoint and self.azure_openai_api_key and self.azure_openai_deployment
         )
+
+    @property
+    def llm_model(self) -> str:
+        return self.openai_model if self.uses_openai_v1 else self.azure_openai_deployment
 
     @property
     def deepgram_ready(self) -> bool:
@@ -71,19 +85,28 @@ class Settings:
         )
 
 
+def _optional_float(name: str, default: str) -> float | None:
+    value = _env(name, default).lower()
+    return None if value in ("", "none", "default") else float(value)
+
+
 def load_settings() -> Settings:
     data_dir = Path(_env("DATA_DIR") or BACKEND_DIR / "storage")
     return Settings(
         livekit_url=_env("LIVEKIT_URL"),
         livekit_api_key=_env("LIVEKIT_API_KEY"),
         livekit_api_secret=_env("LIVEKIT_API_SECRET"),
+        openai_api_key=_env("OPENAI_API_KEY"),
+        openai_base_url=_env("OPENAI_BASE_URL"),
+        openai_model=_env("OPENAI_MODEL"),
         azure_openai_endpoint=_env("AZURE_OPENAI_ENDPOINT"),
         azure_openai_api_key=_env("AZURE_OPENAI_API_KEY"),
         azure_openai_deployment=_env("AZURE_OPENAI_DEPLOYMENT"),
         azure_openai_api_version=_env("AZURE_OPENAI_API_VERSION", "2024-10-21"),
+        llm_temperature=_optional_float("LLM_TEMPERATURE", "0.3"),
         deepgram_api_key=_env("DEEPGRAM_API_KEY"),
         deepgram_model=_env("DEEPGRAM_MODEL", "nova-3"),
-        deepgram_language=_env("DEEPGRAM_LANGUAGE", "multi"),
+        deepgram_language=_env("DEEPGRAM_LANGUAGE", "en-IN"),
         smallest_api_key=_env("SMALLEST_API_KEY"),
         smallest_model=_env("SMALLEST_MODEL", "lightning_v3.1_pro"),
         smallest_voice_id=_env("SMALLEST_VOICE_ID"),

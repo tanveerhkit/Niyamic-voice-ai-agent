@@ -137,6 +137,12 @@ const STATUS_COPY: Record<IntegrationStatus, { label: string; tone: "green" | "a
   unknown: { label: "Unavailable", tone: "red" },
 };
 
+function formatSkew(seconds: number) {
+  const minutes = Math.round(Math.abs(seconds) / 60);
+  const hours = Math.floor(minutes / 60);
+  return hours ? `${hours}h ${minutes % 60}m` : `${minutes}m`;
+}
+
 const toneClasses = {
   accent: "border-accent/25 bg-accent/[0.08] text-accent",
   cyan: "border-cyan/25 bg-cyan/[0.08] text-cyan",
@@ -254,6 +260,14 @@ export default function IntegrationsPage() {
       {error ? (
         <p className="mb-4 border border-red/30 bg-red/[0.05] px-3 py-2 text-[11.5px] text-red">
           {error} Start it from the backend folder: uvicorn api:app --port 8000
+        </p>
+      ) : null}
+
+      {health && Math.abs(health.clockSkewSeconds) > 120 ? (
+        <p className="mb-4 border border-amber/30 bg-amber/[0.05] px-3 py-2 text-[11.5px] text-amber">
+          The server&apos;s clock is {formatSkew(health.clockSkewSeconds)}{" "}
+          {health.clockSkewSeconds > 0 ? "behind" : "ahead of"} LiveKit. Calls still connect because tokens
+          are adjusted, but turn on automatic time sync on this machine.
         </p>
       ) : null}
 
