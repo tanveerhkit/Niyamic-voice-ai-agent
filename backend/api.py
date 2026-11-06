@@ -199,6 +199,47 @@ def search(q: str = Query(..., min_length=1, max_length=200)) -> dict[str, Any]:
 
 _calls_cache: tuple[float, list[dict[str, Any]]] | None = None
 
+# Identity prefixes of the two kinds of people on a call. The voice agent goes quiet while
+# a specialist is in the room and takes the call back when they leave.
+CALLER_PREFIX = "customer-"
+SPECIALIST_PREFIX = "specialist-"
+
+
+def _livekit_client() -> livekit_api.LiveKitAPI:
+    api_url = settings.livekit_url.replace("wss://", "https://").replace("ws://", "http://")
+    return livekit_api.LiveKitAPI(api_url, settings.livekit_api_key, settings.livekit_api_secret)
+
+
+def _participant_token(
+    identity: str,
+    name: str,
+    room_name: str,
+    room_config: livekit_api.RoomConfiguration | None = None,
+) -> str:
+    token = (
+        livekit_api.AccessToken(settings.livekit_api_key, settings.livekit_api_secret)
+        .with_identity(identity)
+        .with_name(name)
+        .with_ttl(timedelta(minutes=30))
+        .with_grants(
+            livekit_api.VideoGrants(
+                room_join=True,
+                room=room_name,
+                can_publish=True,
+                can_subscribe=True,
+                can_publish_data=True,
+            )
+        )
+    )
+    if room_config is not None:
+        token = token.with_room_config(room_config)
+    # Re-stamp the validity window on LiveKit's clock, with a little leeway.
+    claims = jwt.decode(token.to_jwt(), options={"verify_signature": False})
+    offset = round(livekit_clock_offset())
+    claims["nbf"] += offset - 30
+    claims["exp"] += offset
+    return jwt.encode(claims, settings.livekit_api_secret, algorithm="HS256")
+
 
 @app.get("/api/calls")
 async def active_calls() -> dict[str, Any]:
@@ -210,12 +251,9 @@ async def active_calls() -> dict[str, Any]:
         return {"calls": _calls_cache[1]}
 
     now = time.time() + livekit_clock_offset()
-    api_url = settings.livekit_url.replace("wss://", "https://").replace("ws://", "http://")
     calls: list[dict[str, Any]] = []
     try:
-        async with livekit_api.LiveKitAPI(
-            api_url, settings.livekit_api_key, settings.livekit_api_secret
-        ) as client:
+        async with _livekit_client() as client:
             rooms = (await client.room.list_rooms(livekit_api.ListRoomsRequest())).rooms
             for room in rooms:
                 if not room.name.startswith("call-"):
@@ -224,9 +262,10 @@ async def active_calls() -> dict[str, Any]:
                     await client.room.list_participants(livekit_api.ListParticipantsRequest(room=room.name))
                 ).participants
                 agent = next((p for p in participants if p.kind == livekit_api.ParticipantInfo.Kind.AGENT), None)
-                caller = next((p for p in participants if p.identity.startswith("customer-")), None)
+                caller = next((p for p in participants if p.identity.startswith(CALLER_PREFIX)), None)
                 if caller is None:
                     continue  # the caller has left; the room is closing
+                specialist = next((p for p in participants if p.identity.startswith(SPECIALIST_PREFIX)), None)
                 attributes = dict(agent.attributes) if agent else {}
                 created = room.creation_time_ms / 1000 if room.creation_time_ms else room.creation_time
                 calls.append(
@@ -237,6 +276,11 @@ async def active_calls() -> dict[str, Any]:
                         "customerName": attributes.get("niyamic.customer") or caller.name or "Caller",
                         "agentState": attributes.get("lk.agent.state") if agent else "connecting",
                         "elapsedSec": max(0, int(now - created)),
+                        "handoff": attributes.get("niyamic.handoff") or None,
+                        "handoffReason": attributes.get("niyamic.handoff_reason") or None,
+                        "handoffSummary": attributes.get("niyamic.handoff_summary") or None,
+                        "transferTeam": attributes.get("niyamic.handoff_team") or None,
+                        "specialistName": specialist.name if specialist else None,
                     }
                 )
     except Exception as exc:  # noqa: BLE001 - report LiveKit outages to the UI
@@ -245,6 +289,74 @@ async def active_calls() -> dict[str, Any]:
     calls.sort(key=lambda call: call["elapsedSec"])
     _calls_cache = (time.monotonic(), calls)
     return {"calls": calls}
+
+
+class JoinRequest(BaseModel):
+    name: str = Field("Specialist", min_length=1, max_length=80)
+
+
+async def _require_call(client: livekit_api.LiveKitAPI, room_name: str) -> None:
+    if not room_name.startswith("call-"):
+        raise HTTPException(404, "Call not found.")
+    rooms = (await client.room.list_rooms(livekit_api.ListRoomsRequest(names=[room_name]))).rooms
+    if not rooms:
+        raise HTTPException(404, "This call has ended.")
+
+
+@app.post("/api/calls/{room_name}/join")
+async def join_call(room_name: str, request: JoinRequest) -> dict[str, Any]:
+    """Issue a token for a human specialist to join a call. The agent hands the call over on join."""
+    global _calls_cache
+    if not settings.livekit_ready:
+        raise HTTPException(503, "LiveKit is not configured.")
+    try:
+        async with _livekit_client() as client:
+            await _require_call(client, room_name)
+    except HTTPException:
+        raise
+    except Exception as exc:  # noqa: BLE001 - report LiveKit outages to the UI
+        raise HTTPException(502, f"Could not reach LiveKit: {exc}") from exc
+
+    identity = f"{SPECIALIST_PREFIX}{secrets.token_hex(4)}"
+    _calls_cache = None
+    return {
+        "serverUrl": settings.livekit_url,
+        "participantToken": _participant_token(identity, request.name, room_name),
+        "roomName": room_name,
+        "participantIdentity": identity,
+    }
+
+
+@app.post("/api/calls/{room_name}/end", status_code=204)
+async def end_call(room_name: str) -> Response:
+    """Hang up a call for everyone in it."""
+    global _calls_cache
+    if not settings.livekit_ready:
+        raise HTTPException(503, "LiveKit is not configured.")
+    try:
+        async with _livekit_client() as client:
+            await _require_call(client, room_name)
+            await client.room.delete_room(livekit_api.DeleteRoomRequest(room=room_name))
+    except HTTPException:
+        raise
+    except Exception as exc:  # noqa: BLE001 - report LiveKit outages to the UI
+        raise HTTPException(502, f"Could not reach LiveKit: {exc}") from exc
+    _calls_cache = None
+    return Response(status_code=204)
+
+
+class EscalationSettings(BaseModel):
+    """When the voice agent hands a call to a human. Mirrors the agent editor's Escalation tab."""
+
+    confidenceThreshold: float = Field(0.65, ge=0, le=1)
+    onCustomerRequest: bool = True
+    onNegativeSentiment: bool = True
+    onPolicyException: bool = True
+    autoTransferHighRisk: bool = True
+    keywords: list[str] = Field(default_factory=list, max_length=50)
+    maxTurns: int | None = Field(8, ge=0, le=100)
+    transferTeam: str = Field("", max_length=120)
+    message: str = Field("", max_length=600)
 
 
 class AgentProfile(BaseModel):
@@ -257,6 +369,7 @@ class AgentProfile(BaseModel):
     systemPrompt: str = Field("", max_length=6000)
     knowledge: str = Field("", max_length=12000)
     languages: list[str] = Field(default_factory=list, max_length=10)
+    escalation: EscalationSettings = Field(default_factory=EscalationSettings)
 
 
 class TokenRequest(BaseModel):
@@ -280,36 +393,19 @@ def create_token(request: TokenRequest) -> dict[str, Any]:
         raise HTTPException(503, f"Voice calling is not configured. Missing: {', '.join(missing)}.")
 
     room_name = f"call-{uuid.uuid4().hex[:12]}"
-    identity = f"customer-{secrets.token_hex(4)}"
+    identity = f"{CALLER_PREFIX}{secrets.token_hex(4)}"
     dispatch = livekit_api.RoomAgentDispatch(
         agent_name=AGENT_NAME,
         metadata=json.dumps(request.agent.model_dump(), ensure_ascii=False),
     )
-    token = (
-        livekit_api.AccessToken(settings.livekit_api_key, settings.livekit_api_secret)
-        .with_identity(identity)
-        .with_name(request.participantName)
-        .with_ttl(timedelta(minutes=30))
-        .with_grants(
-            livekit_api.VideoGrants(
-                room_join=True,
-                room=room_name,
-                can_publish=True,
-                can_subscribe=True,
-                can_publish_data=True,
-            )
-        )
-        .with_room_config(livekit_api.RoomConfiguration(agents=[dispatch]))
-        .to_jwt()
-    )
-    # Re-stamp the validity window on LiveKit's clock, with a little leeway.
-    claims = jwt.decode(token, options={"verify_signature": False})
-    offset = round(livekit_clock_offset())
-    claims["nbf"] += offset - 30
-    claims["exp"] += offset
     return {
         "serverUrl": settings.livekit_url,
-        "participantToken": jwt.encode(claims, settings.livekit_api_secret, algorithm="HS256"),
+        "participantToken": _participant_token(
+            identity,
+            request.participantName,
+            room_name,
+            livekit_api.RoomConfiguration(agents=[dispatch]),
+        ),
         "roomName": room_name,
         "participantIdentity": identity,
     }

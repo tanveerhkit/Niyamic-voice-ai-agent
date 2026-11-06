@@ -25,6 +25,7 @@ import {
 } from "@/lib/live-actions";
 import { readLive, useLiveSessions, writeLive } from "@/lib/live-store";
 import type { LiveSession } from "@/lib/types";
+import { type ActiveCall, useActiveCalls } from "@/lib/voice-api";
 import {
   cn,
   formatDuration,
@@ -116,8 +117,183 @@ function SessionCard({
   );
 }
 
+function callState(call: ActiveCall) {
+  if (call.handoff === "requested") return { label: "Waiting", tone: "amber" as const };
+  if (call.specialistName) return { label: "Human", tone: "cyan" as const };
+  if (call.handoff === "missed") return { label: "Missed", tone: "red" as const };
+  return { label: "AI active", tone: "accent" as const };
+}
+
+function joinHref(call: ActiveCall) {
+  return `/supervisor/call?room=${encodeURIComponent(call.id)}`;
+}
+
+function VoiceCallCard({
+  call,
+  elapsed,
+  selected,
+  onSelect,
+}: {
+  call: ActiveCall;
+  elapsed: number;
+  selected: boolean;
+  onSelect: () => void;
+}) {
+  const state = callState(call);
+
+  return (
+    <div
+      className={cn(
+        "rounded-xl border p-3 transition-colors",
+        selected
+          ? "border-accent/30 bg-accent/[0.04]"
+          : "border-line bg-surface-2 hover:border-line-strong hover:bg-surface-2",
+      )}
+    >
+      <button type="button" onClick={onSelect} className="w-full text-left">
+        <div className="flex items-start gap-2.5">
+          <span className="relative">
+            <AgentAvatar name={call.customerName} color="cyan" size="sm" />
+            {call.handoff === "requested" ? (
+              <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full border border-bg bg-amber" />
+            ) : null}
+          </span>
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center justify-between gap-2">
+              <p className="truncate text-[12px] font-medium text-ink">{call.customerName}</p>
+              <Badge tone={state.tone} dot>
+                {state.label}
+              </Badge>
+            </div>
+            <p className="mt-0.5 truncate font-mono text-[8.5px] uppercase tracking-[0.08em] text-muted-2">
+              Voice call · {call.agentName}
+            </p>
+          </div>
+        </div>
+        <p className="mt-2 truncate text-[10.5px] text-muted">{call.handoffReason ?? "No handoff requested"}</p>
+        <p className="mt-2 font-mono text-[8.5px] text-muted-2">{formatDuration(elapsed)}</p>
+      </button>
+      {call.handoff === "requested" ? (
+        <Link href={joinHref(call)} className="mt-2.5 block">
+          <Button variant="primary" size="sm" className="w-full">
+            <Headphones className="h-3 w-3" />
+            Accept handoff
+          </Button>
+        </Link>
+      ) : null}
+    </div>
+  );
+}
+
+function VoiceCallPanel({ call, elapsed }: { call: ActiveCall; elapsed: number }) {
+  const state = callState(call);
+  const canJoin = !call.specialistName;
+
+  return (
+    <div className="min-w-0 space-y-4">
+      <Panel className="overflow-hidden">
+        <div className="flex flex-col justify-between gap-3 border-b border-line px-4 py-3 sm:flex-row sm:items-center">
+          <div className="flex items-center gap-3">
+            <AgentAvatar name={call.customerName} color="cyan" size="md" />
+            <div>
+              <div className="flex flex-wrap items-center gap-2">
+                <p className="text-[14px] font-medium text-ink">{call.customerName}</p>
+                <Badge tone={state.tone} dot>
+                  {state.label}
+                </Badge>
+              </div>
+              <p className="mt-0.5 font-mono text-[9px] uppercase tracking-[0.1em] text-muted-2">
+                {call.id} · {call.agentName} · {formatDuration(elapsed)}
+              </p>
+            </div>
+          </div>
+          {canJoin && call.handoff !== "requested" ? (
+            <Link href={joinHref(call)}>
+              <Button variant="secondary" size="sm">
+                <Headphones className="h-3 w-3" />
+                Join call
+              </Button>
+            </Link>
+          ) : null}
+        </div>
+
+        {call.handoff === "requested" ? (
+          <div className="flex flex-col justify-between gap-3 border-b border-amber/20 bg-amber/[0.045] px-4 py-3 sm:flex-row sm:items-center">
+            <div className="flex items-start gap-2.5">
+              <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-amber/25 bg-amber/10 text-amber">
+                <ShieldAlert className="h-3.5 w-3.5" />
+              </span>
+              <div>
+                <p className="text-[11.5px] font-medium text-amber">Handoff requested</p>
+                <p className="mt-0.5 text-[10.5px] leading-relaxed text-amber/80">{call.handoffReason}</p>
+              </div>
+            </div>
+            <Link href={joinHref(call)}>
+              <Button variant="primary" size="sm">
+                <Headphones className="h-3 w-3" />
+                Accept handoff
+              </Button>
+            </Link>
+          </div>
+        ) : call.specialistName ? (
+          <div className="flex items-center gap-2.5 border-b border-cyan/20 bg-cyan/[0.045] px-4 py-3">
+            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-cyan/25 bg-cyan/10 text-cyan">
+              <Headphones className="h-3.5 w-3.5" />
+            </span>
+            <p className="text-[11.5px] font-medium text-cyan">{call.specialistName} is on the call</p>
+          </div>
+        ) : call.handoff === "missed" ? (
+          <div className="flex items-start gap-2.5 border-b border-red/20 bg-red/[0.04] px-4 py-3">
+            <ShieldAlert className="mt-0.5 h-3.5 w-3.5 shrink-0 text-red" />
+            <p className="text-[11px] leading-relaxed text-red">
+              No one joined in time, so {call.agentName} offered the caller a call back. You can still join.
+            </p>
+          </div>
+        ) : null}
+
+        <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_260px]">
+          <div className="min-w-0 border-b border-line p-4 lg:border-b-0 lg:border-r">
+            <p className="font-mono text-[8.5px] uppercase tracking-[0.12em] text-muted-2">Summary</p>
+            <p className="mt-2 text-[11.5px] leading-relaxed text-ink/85">
+              {call.handoffSummary ?? `${call.agentName} is handling this call and hasn't asked for a specialist.`}
+            </p>
+            <p className="mt-4 text-[10.5px] text-muted">
+              The full conversation with {call.agentName} opens when you join. {call.agentName} goes silent while
+              you&apos;re on the call and takes it back when you leave.
+            </p>
+          </div>
+          <aside className="p-3">
+            <div className="rounded-xl border border-line bg-surface-2/50 p-3">
+              <p className="font-mono text-[8.5px] uppercase tracking-[0.12em] text-muted-2">Handoff record</p>
+              <div className="mt-1.5 space-y-1 text-[9.5px] text-muted">
+                <p className="flex items-center justify-between gap-3">
+                  <span className="shrink-0">Reason</span>
+                  <span className="max-w-[150px] break-words text-right leading-snug text-ink">
+                    {call.handoffReason ?? "—"}
+                  </span>
+                </p>
+                <p className="flex items-center justify-between gap-3">
+                  <span className="shrink-0">Team</span>
+                  <span className="max-w-[150px] break-words text-right leading-snug text-ink">
+                    {call.transferTeam ?? "—"}
+                  </span>
+                </p>
+                <p className="flex items-center justify-between">
+                  <span>Agent</span>
+                  <span className="text-ink">{call.specialistName ?? "—"}</span>
+                </p>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </Panel>
+    </div>
+  );
+}
+
 export default function SupervisorPage() {
   const sessions = useLiveSessions();
+  const voiceCalls = useActiveCalls();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [available, setAvailable] = useState(true);
   const [message, setMessage] = useState("");
@@ -141,12 +317,27 @@ export default function SupervisorPage() {
     [sessions],
   );
 
+  const calls = useMemo(() => {
+    const rank = (call: ActiveCall) => (call.handoff === "requested" ? 0 : call.specialistName ? 1 : 2);
+    return [...voiceCalls.calls].sort((a, b) => rank(a) - rank(b) || a.elapsedSec - b.elapsedSec);
+  }, [voiceCalls.calls]);
+  const callElapsed = (call: ActiveCall) =>
+    call.elapsedSec + Math.max(0, Math.floor((now - voiceCalls.fetchedAt) / 1000));
+  // A real call waiting for a human outranks the scripted demo when nothing is selected.
+  const selectedCall =
+    calls.find((call) => call.id === selectedId) ??
+    (selectedId ? undefined : calls.find((call) => call.handoff === "requested") ?? (live.length ? undefined : calls[0]));
+
   const selected = live.find((session) => session.id === selectedId) ?? live[0] ?? null;
   const agent = selected ? agentById(selected.agentId) ?? seedAgents[0] : seedAgents[0];
   const elapsed = selected ? Math.floor(((selected.endedAt ?? now) - selected.startedAt) / 1000) : 0;
 
-  const waiting = live.filter((session) => session.status === "escalating").length;
-  const activeHuman = live.filter((session) => session.status === "human_active").length;
+  const waiting =
+    live.filter((session) => session.status === "escalating").length +
+    calls.filter((call) => call.handoff === "requested").length;
+  const activeHuman =
+    live.filter((session) => session.status === "human_active").length +
+    calls.filter((call) => call.specialistName).length;
 
   const mutate = (updater: (session: LiveSession) => LiveSession) => {
     if (!selected) return;
@@ -238,32 +429,42 @@ export default function SupervisorPage() {
             </Badge>
           </div>
           <div className="scrollbar-thin flex-1 space-y-2 overflow-y-auto p-3">
-            {live.length === 0 ? (
+            {live.length === 0 && calls.length === 0 ? (
               <EmptyState
                 icon={<Inbox className="h-5 w-5" />}
                 title="No live calls"
                 description="Escalated calls appear here."
               />
-            ) : (
-              live.map((session) => (
-                <SessionCard
-                  key={session.id}
-                  session={session}
-                  now={now}
-                  selected={selected?.id === session.id}
-                  onSelect={() => setSelectedId(session.id)}
-                  onAccept={() => {
-                    setSelectedId(session.id);
-                    const current = readLive(session.id);
-                    if (current) writeLive(applyAcceptHandoff(current));
-                  }}
-                />
-              ))
-            )}
+            ) : null}
+            {calls.map((call) => (
+              <VoiceCallCard
+                key={call.id}
+                call={call}
+                elapsed={callElapsed(call)}
+                selected={selectedCall?.id === call.id}
+                onSelect={() => setSelectedId(call.id)}
+              />
+            ))}
+            {live.map((session) => (
+              <SessionCard
+                key={session.id}
+                session={session}
+                now={now}
+                selected={!selectedCall && selected?.id === session.id}
+                onSelect={() => setSelectedId(session.id)}
+                onAccept={() => {
+                  setSelectedId(session.id);
+                  const current = readLive(session.id);
+                  if (current) writeLive(applyAcceptHandoff(current));
+                }}
+              />
+            ))}
           </div>
         </Panel>
 
-        {selected ? (
+        {selectedCall ? (
+          <VoiceCallPanel call={selectedCall} elapsed={callElapsed(selectedCall)} />
+        ) : selected ? (
           <div className="min-w-0 space-y-4">
             <Panel className="overflow-hidden">
               <div className="flex flex-col justify-between gap-3 border-b border-line px-4 py-3 sm:flex-row sm:items-center">

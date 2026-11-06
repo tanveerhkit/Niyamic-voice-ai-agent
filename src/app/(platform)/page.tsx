@@ -63,7 +63,12 @@ export default function OverviewPage() {
     customerName: call.customerName,
     language: "en" as const,
     elapsedSec: call.elapsedSec + Math.max(0, Math.floor((now - activeCalls.fetchedAt) / 1000)),
-    state: VOICE_STATE[call.agentState] ?? "Connecting",
+    state:
+      call.handoff === "requested"
+        ? "Awaiting human"
+        : call.specialistName
+          ? "Human active"
+          : (VOICE_STATE[call.agentState] ?? "Connecting"),
   }));
   const scriptedRows = liveSessions
     .filter((session) => session.status !== "ended")

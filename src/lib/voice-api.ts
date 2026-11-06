@@ -85,6 +85,9 @@ export interface SearchResult {
   documents: DocumentMatch[];
 }
 
+/** Where a call stands in a human handoff, as reported by the voice agent. */
+export type CallHandoff = "requested" | "accepted" | "missed";
+
 export interface ActiveCall {
   id: string;
   agentId: string;
@@ -93,6 +96,33 @@ export interface ActiveCall {
   /** LiveKit agent state: initializing, listening, thinking, speaking, or connecting. */
   agentState: string;
   elapsedSec: number;
+  handoff: CallHandoff | null;
+  handoffReason: string | null;
+  handoffSummary: string | null;
+  transferTeam: string | null;
+  specialistName: string | null;
+}
+
+/** Participant identity prefix of a human specialist who joined a call. */
+export const SPECIALIST_PREFIX = "specialist-";
+
+/** Text-stream topic the voice agent uses to send the conversation so far to a joining specialist. */
+export const HANDOFF_TOPIC = "agent.handoff";
+
+/** Participant attributes the voice agent sets to describe a handoff. */
+export const HANDOFF_ATTRIBUTES = {
+  state: "niyamic.handoff",
+  reason: "niyamic.handoff_reason",
+  summary: "niyamic.handoff_summary",
+  team: "niyamic.handoff_team",
+  specialist: "niyamic.specialist",
+} as const;
+
+export interface HandoffContext {
+  reason: string;
+  summary: string;
+  team: string;
+  turns: Array<{ role: "ai" | "customer"; text: string }>;
 }
 
 export interface CallConnection {
@@ -164,41 +194,65 @@ export const voiceApi = {
           systemPrompt: agent.systemPrompt,
           knowledge: agent.knowledge,
           languages: agent.languages,
+          escalation: agent.escalation,
         },
       }),
     }),
+  joinCall: (roomName: string, name: string) =>
+    request<CallConnection>(`/api/calls/${encodeURIComponent(roomName)}/join`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name }),
+    }),
+  endCall: (roomName: string) =>
+    request<void>(`/api/calls/${encodeURIComponent(roomName)}/end`, { method: "POST" }),
 };
 
+// One poller shared by every component that shows live calls (the sidebar badge, Overview,
+// Supervisor), so mounting several of them doesn't multiply requests.
+type CallsState = { calls: ActiveCall[]; fetchedAt: number };
+const CALLS_INTERVAL_MS = 3000;
+const CALLS_OFFLINE_INTERVAL_MS = 30_000;
+let callsState: CallsState = { calls: [], fetchedAt: 0 };
+const callsListeners = new Set<(state: CallsState) => void>();
+let callsTimer: ReturnType<typeof setTimeout> | undefined;
+let callsGeneration = 0;
+
+function pollCalls() {
+  clearTimeout(callsTimer);
+  const generation = ++callsGeneration;
+  const settle = (calls: ActiveCall[], nextMs: number) => {
+    if (generation !== callsGeneration || !callsListeners.size) return;
+    callsState = { calls, fetchedAt: Date.now() };
+    callsListeners.forEach((listener) => listener(callsState));
+    callsTimer = setTimeout(pollCalls, nextMs);
+  };
+  voiceApi.activeCalls().then(
+    (result) => settle(result.calls, CALLS_INTERVAL_MS),
+    () => settle([], CALLS_OFFLINE_INTERVAL_MS),
+  );
+}
+
+/** Fetch live calls now instead of waiting for the next poll, for example after joining one. */
+export function refreshActiveCalls() {
+  if (callsListeners.size) pollCalls();
+}
+
 /** Real LiveKit calls in progress. Polls slowly while the backend is unreachable. */
-export function useActiveCalls(intervalMs = 3000) {
-  const [state, setState] = useState<{ calls: ActiveCall[]; fetchedAt: number }>({
-    calls: [],
-    fetchedAt: 0,
-  });
+export function useActiveCalls() {
+  const [state, setState] = useState<CallsState>(callsState);
 
   useEffect(() => {
-    let cancelled = false;
-    let timer: ReturnType<typeof setTimeout> | undefined;
-    const poll = () => {
-      voiceApi.activeCalls().then(
-        (result) => {
-          if (cancelled) return;
-          setState({ calls: result.calls, fetchedAt: Date.now() });
-          timer = setTimeout(poll, intervalMs);
-        },
-        () => {
-          if (cancelled) return;
-          setState({ calls: [], fetchedAt: Date.now() });
-          timer = setTimeout(poll, 30_000);
-        },
-      );
-    };
-    poll();
+    callsListeners.add(setState);
+    if (callsListeners.size === 1) pollCalls();
     return () => {
-      cancelled = true;
-      clearTimeout(timer);
+      callsListeners.delete(setState);
+      if (!callsListeners.size) {
+        clearTimeout(callsTimer);
+        callsGeneration++;
+      }
     };
-  }, [intervalMs]);
+  }, []);
 
   return state;
 }
