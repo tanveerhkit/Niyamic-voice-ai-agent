@@ -7,9 +7,11 @@ import { Room, RoomEvent } from "livekit-client";
 import {
   RoomAudioRenderer,
   RoomContext,
-  StartAudio,
+  useAudioPlayback,
   useDataChannel,
   useLocalParticipant,
+  useMediaDeviceSelect,
+  useTrackVolume,
   useTranscriptions,
   useVoiceAssistant,
 } from "@livekit/components-react";
@@ -26,6 +28,7 @@ import {
   Phone,
   PhoneOff,
   RotateCcw,
+  Volume2,
   X,
 } from "lucide-react";
 import type { Agent, Language, SessionRecord, Turn } from "@/lib/types";
@@ -33,7 +36,7 @@ import { saveCompleted } from "@/lib/live-store";
 import { useVoiceHealth, voiceApi } from "@/lib/voice-api";
 import { cn, formatDuration } from "@/lib/utils";
 import { AgentAvatar, LivePill, Logo } from "@/components/brand";
-import { Button, Panel } from "@/components/ui";
+import { Button, Label, Panel, Progress, Select } from "@/components/ui";
 import { Waveform, type WaveState } from "@/components/live/waveform";
 
 const TOOL_TOPIC = "agent.tool";
@@ -168,6 +171,93 @@ function CallControl({
   );
 }
 
+function supportsOutputSelection() {
+  return typeof HTMLMediaElement !== "undefined" && "setSinkId" in HTMLMediaElement.prototype;
+}
+
+function DeviceSelect({
+  label,
+  devices,
+  activeDeviceId,
+  onChange,
+}: {
+  label: string;
+  devices: MediaDeviceInfo[];
+  activeDeviceId: string;
+  onChange: (deviceId: string) => Promise<void>;
+}) {
+  return (
+    <div>
+      <Label className="mb-1.5">{label}</Label>
+      <Select
+        value={activeDeviceId || "default"}
+        onChange={(event) => void onChange(event.target.value)}
+        className="h-8 truncate text-[11px]"
+      >
+        {devices.length ? (
+          devices.map((device, index) => (
+            <option key={device.deviceId} value={device.deviceId}>
+              {device.label || `${label} ${index + 1}`}
+            </option>
+          ))
+        ) : (
+          <option value="default">Default</option>
+        )}
+      </Select>
+    </div>
+  );
+}
+
+function AudioPanel({ agentVolume }: { agentVolume: number }) {
+  const mics = useMediaDeviceSelect({ kind: "audioinput" });
+  const speakers = useMediaDeviceSelect({ kind: "audiooutput" });
+  const canSelectOutput = supportsOutputSelection();
+  const matchedRef = useRef(false);
+  const { devices: micDevices, activeDeviceId: micId } = mics;
+  const { devices: speakerDevices, activeDeviceId: speakerId, setActiveMediaDevice: setSpeaker } = speakers;
+
+  // Play through the same headset as the microphone when there is one. On Windows a headset
+  // is often only the "communications" device, while the browser plays to the default output.
+  useEffect(() => {
+    if (matchedRef.current || !canSelectOutput || !micDevices.length || !speakerDevices.length) return;
+    matchedRef.current = true;
+    const mic = micDevices.find((device) => device.deviceId === (micId || "default")) ?? micDevices[0];
+    const match = speakerDevices.find(
+      (device) =>
+        device.groupId === mic.groupId && device.deviceId !== "default" && device.deviceId !== "communications",
+    );
+    if (match && match.deviceId !== speakerId) void setSpeaker(match.deviceId);
+  }, [canSelectOutput, micDevices, micId, speakerDevices, speakerId, setSpeaker]);
+
+  const level = Math.min(100, Math.round(agentVolume * 400));
+
+  return (
+    <Panel className="p-4">
+      <p className="font-mono text-[9px] uppercase tracking-[0.14em] text-muted-2">Audio</p>
+      <div className="mt-3 space-y-3">
+        <DeviceSelect
+          label="Microphone"
+          devices={micDevices}
+          activeDeviceId={micId}
+          onChange={mics.setActiveMediaDevice}
+        />
+        {canSelectOutput ? (
+          <DeviceSelect label="Speaker" devices={speakerDevices} activeDeviceId={speakerId} onChange={setSpeaker} />
+        ) : null}
+        <div>
+          <div className="mb-1.5 flex items-center justify-between">
+            <span className="text-[10px] text-muted">Agent voice</span>
+            <span className={cn("font-mono text-[9px]", level > 4 ? "text-green" : "text-muted-2")}>
+              {level > 4 ? "Receiving" : "Silent"}
+            </span>
+          </div>
+          <Progress value={level} tone={level > 4 ? "green" : "accent"} className="h-1" />
+        </div>
+      </div>
+    </Panel>
+  );
+}
+
 function InCall({
   agent,
   startedAt,
@@ -179,7 +269,9 @@ function InCall({
   snapshotRef: React.RefObject<() => CallSnapshot>;
   onEnd: () => void;
 }) {
-  const { state, agent: agentParticipant } = useVoiceAssistant();
+  const { state, agent: agentParticipant, audioTrack } = useVoiceAssistant();
+  const agentVolume = useTrackVolume(audioTrack);
+  const { canPlayAudio, startAudio } = useAudioPlayback();
   const { localParticipant, isMicrophoneEnabled } = useLocalParticipant();
   const transcriptions = useTranscriptions();
   const { health } = useVoiceHealth();
@@ -262,6 +354,8 @@ function InCall({
           </div>
         </Panel>
 
+        <AudioPanel agentVolume={agentVolume} />
+
         <Panel className="p-4">
           <div className="flex items-center justify-between">
             <p className="font-mono text-[9px] uppercase tracking-[0.14em] text-muted-2">Data lookups</p>
@@ -313,6 +407,23 @@ function InCall({
 
       <main className="order-1 min-w-0 lg:order-2">
         <Panel className="relative flex h-full min-h-[600px] flex-col overflow-hidden">
+          {!canPlayAudio ? (
+            <div className="absolute inset-0 z-20 flex items-center justify-center bg-[#f8f7f6]/85 p-4 backdrop-blur-sm">
+              <div className="panel-raised w-full max-w-sm p-6 text-center">
+                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-accent/25 bg-accent/10">
+                  <Volume2 className="h-5 w-5 text-accent" />
+                </div>
+                <h2 className="mt-3 font-display text-[22px] font-light tracking-[-0.02em] text-ink">
+                  Turn on audio
+                </h2>
+                <p className="mt-1 text-[11.5px] text-muted">Your browser paused the agent&apos;s voice.</p>
+                <Button variant="primary" className="mt-4 w-full" onClick={() => void startAudio()}>
+                  <Volume2 className="h-3.5 w-3.5" />
+                  Turn on audio
+                </Button>
+              </div>
+            </div>
+          ) : null}
           <div className="flex items-center justify-between border-b border-line px-4 py-3">
             <LivePill />
             <span className="flex items-center gap-1.5 font-mono text-[12px] text-ink">
@@ -346,10 +457,6 @@ function InCall({
                 {copy.label}
               </span>
             </div>
-            <StartAudio
-              label="Enable audio"
-              className="mt-4 border border-line bg-surface px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.14em] text-ink"
-            />
           </div>
 
           <div className="border-t border-line bg-surface-2 px-4 py-4">
@@ -454,6 +561,8 @@ export function LiveCall({ sessionId, agent }: { sessionId: string; agent: Agent
   }, [room]);
 
   const start = async () => {
+    // Unlock audio playback while we still hold the click's user gesture.
+    void room.startAudio().catch(() => undefined);
     moveTo("connecting");
     setError(null);
     try {
