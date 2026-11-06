@@ -271,10 +271,12 @@ export function LiveNowCard({
   sessions: Array<{
     id: string;
     agentId: string;
+    /** Display name when the agent is not one of the built-in agents. */
+    agentLabel?: string;
     customerName: string;
     language: "en" | "ur" | "hi";
     elapsedSec: number;
-    risk: "low" | "medium" | "high";
+    risk?: "low" | "medium" | "high";
     state: string;
   }>;
 }) {
@@ -292,7 +294,9 @@ export function LiveNowCard({
           <div className="min-w-0 flex-1">
             <p className="truncate text-[11.5px] font-medium text-ink">
               {session.customerName}
-              <span className="ml-1.5 font-normal text-muted-2">· {agentName(session.agentId)}</span>
+              <span className="ml-1.5 font-normal text-muted-2">
+                · {session.agentLabel ?? agentName(session.agentId)}
+              </span>
             </p>
             <p className="mt-0.5 font-mono text-[8.5px] uppercase tracking-[0.1em] text-muted-2">
               {LANGUAGE_SHORT[session.language]} · {formatDuration(session.elapsedSec)} · {session.state}
@@ -301,7 +305,13 @@ export function LiveNowCard({
           <span
             className={cn(
               "h-1.5 w-1.5 rounded-full",
-              session.risk === "high" ? "bg-red" : session.risk === "medium" ? "bg-amber" : "bg-green",
+              session.risk === "high"
+                ? "bg-red"
+                : session.risk === "medium"
+                  ? "bg-amber"
+                  : session.risk === "low"
+                    ? "bg-green"
+                    : "bg-muted-2",
             )}
           />
         </div>

@@ -129,6 +129,14 @@ async def publish_tool_event(event: dict[str, Any]) -> None:
         logger.debug("could not publish tool event", exc_info=True)
 
 
+async def set_call_attributes(attributes: dict[str, str]) -> None:
+    """Expose call details (agent, identified caller) to /api/calls via participant attributes."""
+    try:
+        await get_job_context().room.local_participant.set_attributes(attributes)
+    except Exception:  # noqa: BLE001 - dashboard metadata must never break the call
+        logger.debug("could not set participant attributes", exc_info=True)
+
+
 class SupportAgent(Agent):
     def __init__(self, profile: dict[str, Any]) -> None:
         super().__init__(instructions=build_instructions(profile))
@@ -155,16 +163,19 @@ class SupportAgent(Agent):
             for key, value in record["fields"].items()
             if key.strip().lower() in CUSTOMER_NAME_COLUMNS
         }
+        customer = customers.pop() if len(customers) == 1 else None
         await publish_tool_event(
             {
                 "id": event_id,
                 "label": f"Record lookup · {reference}",
                 "status": "done",
                 "result": f"{len(records)} record(s) · {', '.join(sheets)}" if records else "No match",
-                "customer": customers.pop() if len(customers) == 1 else None,
+                "customer": customer,
                 "ms": round((time.monotonic() - started) * 1000),
             }
         )
+        if customer:
+            await set_call_attributes({"niyamic.customer": customer})
         logger.info("lookup %r -> %d records", reference, len(records))
         return format_records(reference, records)
 
@@ -251,6 +262,12 @@ async def entrypoint(ctx: JobContext) -> None:
 
     await session.start(agent=SupportAgent(profile), room=ctx.room)
     await ctx.connect()
+    await set_call_attributes(
+        {
+            "niyamic.agent_id": str(profile.get("id") or ""),
+            "niyamic.agent_name": str(profile.get("name") or "Agent"),
+        }
+    )
     await session.say(profile.get("greeting") or DEFAULT_GREETING, allow_interruptions=True)
 
 

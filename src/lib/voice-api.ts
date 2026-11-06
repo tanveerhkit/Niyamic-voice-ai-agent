@@ -85,6 +85,16 @@ export interface SearchResult {
   documents: DocumentMatch[];
 }
 
+export interface ActiveCall {
+  id: string;
+  agentId: string;
+  agentName: string;
+  customerName: string;
+  /** LiveKit agent state: initializing, listening, thinking, speaking, or connecting. */
+  agentState: string;
+  elapsedSec: number;
+}
+
 export interface CallConnection {
   serverUrl: string;
   participantToken: string;
@@ -137,6 +147,7 @@ export const voiceApi = {
   remove: (id: string) => request<void>(`/api/datasets/${id}`, { method: "DELETE" }),
   preview: (id: string) => request<DatasetPreview>(`/api/datasets/${id}/preview`),
   search: (query: string) => request<SearchResult>(`/api/search?q=${encodeURIComponent(query)}`),
+  activeCalls: () => request<{ calls: ActiveCall[] }>("/api/calls"),
   token: (agent: Agent, participantName = "Customer") =>
     request<CallConnection>("/api/token", {
       method: "POST",
@@ -157,6 +168,40 @@ export const voiceApi = {
       }),
     }),
 };
+
+/** Real LiveKit calls in progress. Polls slowly while the backend is unreachable. */
+export function useActiveCalls(intervalMs = 3000) {
+  const [state, setState] = useState<{ calls: ActiveCall[]; fetchedAt: number }>({
+    calls: [],
+    fetchedAt: 0,
+  });
+
+  useEffect(() => {
+    let cancelled = false;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const poll = () => {
+      voiceApi.activeCalls().then(
+        (result) => {
+          if (cancelled) return;
+          setState({ calls: result.calls, fetchedAt: Date.now() });
+          timer = setTimeout(poll, intervalMs);
+        },
+        () => {
+          if (cancelled) return;
+          setState({ calls: [], fetchedAt: Date.now() });
+          timer = setTimeout(poll, 30_000);
+        },
+      );
+    };
+    poll();
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [intervalMs]);
+
+  return state;
+}
 
 /** Backend status, or an error when the backend is not running. */
 export function useVoiceHealth() {

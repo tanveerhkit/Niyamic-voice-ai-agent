@@ -197,6 +197,56 @@ def search(q: str = Query(..., min_length=1, max_length=200)) -> dict[str, Any]:
 # --------------------------------------------------------------------------- #
 
 
+_calls_cache: tuple[float, list[dict[str, Any]]] | None = None
+
+
+@app.get("/api/calls")
+async def active_calls() -> dict[str, Any]:
+    """Voice calls in progress, read from LiveKit. Cached for two seconds."""
+    global _calls_cache
+    if not settings.livekit_ready:
+        return {"calls": []}
+    if _calls_cache and time.monotonic() - _calls_cache[0] < 2:
+        return {"calls": _calls_cache[1]}
+
+    now = time.time() + livekit_clock_offset()
+    api_url = settings.livekit_url.replace("wss://", "https://").replace("ws://", "http://")
+    calls: list[dict[str, Any]] = []
+    try:
+        async with livekit_api.LiveKitAPI(
+            api_url, settings.livekit_api_key, settings.livekit_api_secret
+        ) as client:
+            rooms = (await client.room.list_rooms(livekit_api.ListRoomsRequest())).rooms
+            for room in rooms:
+                if not room.name.startswith("call-"):
+                    continue
+                participants = (
+                    await client.room.list_participants(livekit_api.ListParticipantsRequest(room=room.name))
+                ).participants
+                agent = next((p for p in participants if p.kind == livekit_api.ParticipantInfo.Kind.AGENT), None)
+                caller = next((p for p in participants if p.identity.startswith("customer-")), None)
+                if caller is None:
+                    continue  # the caller has left; the room is closing
+                attributes = dict(agent.attributes) if agent else {}
+                created = room.creation_time_ms / 1000 if room.creation_time_ms else room.creation_time
+                calls.append(
+                    {
+                        "id": room.name,
+                        "agentId": attributes.get("niyamic.agent_id", ""),
+                        "agentName": attributes.get("niyamic.agent_name") or "Agent",
+                        "customerName": attributes.get("niyamic.customer") or caller.name or "Caller",
+                        "agentState": attributes.get("lk.agent.state") if agent else "connecting",
+                        "elapsedSec": max(0, int(now - created)),
+                    }
+                )
+    except Exception as exc:  # noqa: BLE001 - report LiveKit outages to the UI
+        raise HTTPException(502, f"Could not reach LiveKit: {exc}") from exc
+
+    calls.sort(key=lambda call: call["elapsedSec"])
+    _calls_cache = (time.monotonic(), calls)
+    return {"calls": calls}
+
+
 class AgentProfile(BaseModel):
     id: str = Field("", max_length=80)
     name: str = Field("Ayesha", max_length=80)
