@@ -9,7 +9,9 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@livekit/components-react": "^2.9.25",
     "clsx": "^2.1.1",
+    "livekit-client": "^2.23.0",
     "lucide-react": "^1.69.0",
     "motion": "^14.9.1",
     "next": "16.4.5",

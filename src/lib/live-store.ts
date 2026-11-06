@@ -6,7 +6,15 @@ import type { Language, LiveSession, SessionRecord } from "./types";
 
 const LIVE_PREFIX = "relay.live.";
 const COMPLETED_PREFIX = "relay.session.";
+const HEARTBEAT_PREFIX = "relay.heartbeat.";
 const CHANNEL = "relay.live.v1";
+
+// A scripted call counts as live only while a tab is showing it. Leaving or closing the
+// tab clears its heartbeat at once; the timeout covers crashed tabs and background tabs
+// whose timers the browser throttles to once a minute.
+const HEARTBEAT_MS = 10_000;
+const STALE_AFTER_MS = 3 * 60_000;
+const NEW_CALL_GRACE_MS = 15_000;
 
 type Listener = (session: LiveSession) => void;
 type ChannelMessage = {
@@ -94,6 +102,13 @@ export function removeLive(id: string) {
   notifyGlobal();
 }
 
+function isOpen(session: LiveSession, now = Date.now()) {
+  if (now - session.startedAt < NEW_CALL_GRACE_MS) return true;
+  const beat = Number(localStorage.getItem(HEARTBEAT_PREFIX + session.id));
+  return beat > 0 && now - beat < STALE_AFTER_MS;
+}
+
+/** Scripted calls currently open in a tab. Abandoned calls are kept but not listed. */
 export function listLive(): LiveSession[] {
   if (!canUse()) return [];
   const sessions: LiveSession[] = [];
@@ -102,7 +117,7 @@ export function listLive(): LiveSession[] {
     if (!key?.startsWith(LIVE_PREFIX)) continue;
     try {
       const parsed = JSON.parse(localStorage.getItem(key) ?? "") as LiveSession;
-      if (parsed?.id) sessions.push(parsed);
+      if (parsed?.id && isOpen(parsed)) sessions.push(parsed);
     } catch {
       // ignore
     }
@@ -124,6 +139,12 @@ export function listCompleted(): SessionRecord[] {
     }
   }
   return records;
+}
+
+export function saveCompleted(record: SessionRecord) {
+  if (!canUse()) return;
+  localStorage.setItem(COMPLETED_PREFIX + record.id, JSON.stringify(record));
+  notifyGlobal();
 }
 
 export function getCompleted(id: string): SessionRecord | null {
@@ -159,6 +180,27 @@ export function subscribeAll(listener: () => void) {
   return () => {
     globalListeners.delete(listener);
   };
+}
+
+/** Marks a scripted call as open for as long as the calling component is mounted. */
+export function useLiveHeartbeat(id: string) {
+  useEffect(() => {
+    if (!canUse()) return;
+    const key = HEARTBEAT_PREFIX + id;
+    const beat = () => localStorage.setItem(key, String(Date.now()));
+    const stop = () => localStorage.removeItem(key);
+    beat();
+    const timer = setInterval(beat, HEARTBEAT_MS);
+    window.addEventListener("pagehide", stop);
+    window.addEventListener("pageshow", beat);
+    return () => {
+      clearInterval(timer);
+      window.removeEventListener("pagehide", stop);
+      window.removeEventListener("pageshow", beat);
+      stop();
+      notifyGlobal();
+    };
+  }, [id]);
 }
 
 export function useLiveSession(

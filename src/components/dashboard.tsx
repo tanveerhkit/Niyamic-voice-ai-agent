@@ -10,26 +10,21 @@ import { Badge, Panel, Progress } from "./ui";
 import { Sparkline } from "./charts";
 
 export function PageHeader({
-  eyebrow,
   title,
   description,
   actions,
 }: {
-  eyebrow: string;
   title: React.ReactNode;
   description?: string;
   actions?: React.ReactNode;
 }) {
   return (
-    <div className="flex flex-col justify-between gap-6 border-b border-line pb-7 md:flex-row md:items-end">
-      <div className="max-w-[720px]">
-        <p className="eyebrow index-rule">{eyebrow}</p>
-        <h1 className="mt-4 font-display text-[36px] font-light leading-[1.05] tracking-[-0.035em] text-ink md:text-[46px]">
+    <div className="mb-5 flex flex-col justify-between gap-4 border-b border-line pb-5 md:flex-row md:items-end">
+      <div className="min-w-0">
+        <h1 className="font-display text-[28px] font-normal leading-tight tracking-[-0.025em] text-ink">
           {title}
         </h1>
-        {description ? (
-          <p className="mt-4 max-w-[580px] text-[13px] leading-[1.7] text-muted">{description}</p>
-        ) : null}
+        {description ? <p className="mt-1.5 text-[12.5px] text-muted">{description}</p> : null}
       </div>
       {actions ? <div className="flex flex-wrap items-center gap-2">{actions}</div> : null}
     </div>
@@ -276,10 +271,12 @@ export function LiveNowCard({
   sessions: Array<{
     id: string;
     agentId: string;
+    /** Display name when the agent is not one of the built-in agents. */
+    agentLabel?: string;
     customerName: string;
     language: "en" | "ur" | "hi";
     elapsedSec: number;
-    risk: "low" | "medium" | "high";
+    risk?: "low" | "medium" | "high";
     state: string;
   }>;
 }) {
@@ -297,7 +294,9 @@ export function LiveNowCard({
           <div className="min-w-0 flex-1">
             <p className="truncate text-[11.5px] font-medium text-ink">
               {session.customerName}
-              <span className="ml-1.5 font-normal text-muted-2">· {agentName(session.agentId)}</span>
+              <span className="ml-1.5 font-normal text-muted-2">
+                · {session.agentLabel ?? agentName(session.agentId)}
+              </span>
             </p>
             <p className="mt-0.5 font-mono text-[8.5px] uppercase tracking-[0.1em] text-muted-2">
               {LANGUAGE_SHORT[session.language]} · {formatDuration(session.elapsedSec)} · {session.state}
@@ -306,7 +305,13 @@ export function LiveNowCard({
           <span
             className={cn(
               "h-1.5 w-1.5 rounded-full",
-              session.risk === "high" ? "bg-red" : session.risk === "medium" ? "bg-amber" : "bg-green",
+              session.risk === "high"
+                ? "bg-red"
+                : session.risk === "medium"
+                  ? "bg-amber"
+                  : session.risk === "low"
+                    ? "bg-green"
+                    : "bg-muted-2",
             )}
           />
         </div>

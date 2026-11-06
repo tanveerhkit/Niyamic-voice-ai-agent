@@ -10,6 +10,7 @@ import {
   Check,
   CheckCircle2,
   ChevronRight,
+  FastForward,
   Headphones,
   Loader2,
   Mic,
@@ -19,11 +20,8 @@ import {
   Play,
   RotateCcw,
   Settings2,
-  ShieldAlert,
-  Sparkles,
   Wrench,
   X,
-  Zap,
 } from "lucide-react";
 import { agentById, seedAgents } from "@/lib/agents";
 import { useAgent } from "@/lib/agent-store";
@@ -35,7 +33,7 @@ import {
   applyHumanTurn,
   applyReturnToAI,
 } from "@/lib/live-actions";
-import { resetLive } from "@/lib/live-store";
+import { resetLive, useLiveHeartbeat } from "@/lib/live-store";
 import { HANDOFF_TURNS } from "@/lib/call-script";
 import type { Language, LiveSession } from "@/lib/types";
 import { cn, formatDuration, LANGUAGE_NATIVE, LANGUAGE_SHORT, sleep } from "@/lib/utils";
@@ -44,6 +42,7 @@ import { Badge, Button, Panel, Progress } from "@/components/ui";
 import { Waveform } from "@/components/live/waveform";
 import { Transcript } from "@/components/live/transcript";
 import { Logo } from "@/components/brand";
+import { LiveCall } from "./live-call";
 
 function CallControl({
   icon,
@@ -106,6 +105,7 @@ function CallScreen() {
     sessionId,
     agent.id,
   );
+  useLiveHeartbeat(sessionId);
 
   const [now, setNow] = useState(() => Date.now());
   const [demoOpen, setDemoOpen] = useState(false);
@@ -169,11 +169,8 @@ function CallScreen() {
         <Logo />
         <div className="flex items-center gap-2 text-[12px] text-muted">
           <Loader2 className="h-4 w-4 animate-spin text-accent" />
-          Establishing secure session...
+          Connecting...
         </div>
-        <p className="font-mono text-[9px] uppercase tracking-[0.16em] text-muted-2">
-          LiveKit room · runtime
-        </p>
       </div>
     );
   }
@@ -202,14 +199,9 @@ function CallScreen() {
         <div className="flex min-w-0 items-center gap-3">
           <Logo compact />
           <span className="hidden h-4 w-px bg-line sm:block" />
-          <div className="hidden items-center gap-2 sm:flex">
-            <Badge tone="amber" dot>
-              Customer call
-            </Badge>
-            <span className="font-mono text-[9px] uppercase tracking-[0.12em] text-muted-2">
-              sandbox mode
-            </span>
-          </div>
+          <span className="hidden font-mono text-[9px] uppercase tracking-[0.16em] text-muted sm:inline">
+            Customer call
+          </span>
         </div>
         <div className="flex items-center gap-2">
           <span className="hidden items-center gap-1.5 text-[10px] text-green md:flex">
@@ -257,13 +249,6 @@ function CallScreen() {
                 </div>
               </div>
             </div>
-            {humanActive ? (
-              <div className="mt-3 rounded-none border border-cyan/20 bg-cyan/[0.05] px-2.5 py-2">
-                <p className="text-[10px] leading-relaxed text-cyan/90">
-                  Ayesha is assisting silently with policy checks. Full transcript is shared.
-                </p>
-              </div>
-            ) : null}
           </Panel>
 
           <Panel className="p-4">
@@ -339,9 +324,6 @@ function CallScreen() {
                 </div>
               ))}
             </div>
-            <p className="mt-2 font-mono text-[8px] uppercase tracking-[0.1em] text-muted-2">
-              simulated · livekit + azure pending
-            </p>
           </Panel>
 
           <Panel className="p-4">
@@ -351,9 +333,7 @@ function CallScreen() {
             </div>
             <div className="mt-2.5 space-y-2">
               {session.toolCalls.length === 0 ? (
-                <p className="text-[10px] leading-relaxed text-muted-2">
-                  No tools called yet. The agent will verify the order before responding.
-                </p>
+                <p className="text-[10px] leading-relaxed text-muted-2">No tool calls yet.</p>
               ) : (
                 session.toolCalls.map((tool) => (
                   <div key={tool.id} className="rounded-none border border-line bg-surface px-2.5 py-2">
@@ -383,17 +363,17 @@ function CallScreen() {
                 </Badge>
               </div>
               <p className="mt-2 text-[10.5px] leading-relaxed text-ink/85">{session.handoff.reason}</p>
-              <div className="mt-2 border-t border-line pt-2 font-mono text-[8.5px] text-muted-2">
-                <p>context: transcript + intent + confidence</p>
-                {session.handoff.supervisor ? <p className="mt-0.5">joined: {session.handoff.supervisor}</p> : null}
-              </div>
+              {session.handoff.supervisor ? (
+                <p className="mt-2 border-t border-line pt-2 font-mono text-[8.5px] text-muted-2">
+                  Joined by {session.handoff.supervisor}
+                </p>
+              ) : null}
             </Panel>
           ) : null}
         </aside>
 
         <main className="order-1 min-w-0 lg:order-2">
           <Panel className="relative flex h-full min-h-[600px] flex-col overflow-hidden">
-            <div className="dot-bg pointer-events-none absolute inset-0 opacity-40" />
             <div className="relative flex items-center justify-between border-b border-line px-4 py-3">
               <div className="flex items-center gap-2">
                 {ended ? (
@@ -405,15 +385,10 @@ function CallScreen() {
                   {session.id}
                 </span>
               </div>
-              <div className="flex items-center gap-3">
-                <span className="flex items-center gap-1.5 font-mono text-[12px] text-ink">
-                  <span className={cn("h-1.5 w-1.5 rounded-full", session.paused ? "bg-amber" : "bg-green")} />
-                  {formatDuration(elapsed)}
-                </span>
-                <span className="hidden items-center gap-1 text-[9px] text-muted-2 sm:flex">
-                  <Activity className="h-3 w-3 text-green" /> 48ms jitter
-                </span>
-              </div>
+              <span className="flex items-center gap-1.5 font-mono text-[12px] text-ink">
+                <span className={cn("h-1.5 w-1.5 rounded-full", session.paused ? "bg-amber" : "bg-green")} />
+                {formatDuration(elapsed)}
+              </span>
             </div>
 
             <div className="relative flex flex-1 flex-col items-center justify-center px-4 py-8">
@@ -460,7 +435,7 @@ function CallScreen() {
                   </h1>
                 </div>
                 <p className="mt-0.5 text-[10.5px] text-muted">
-                  {humanActive ? "Human specialist · joined with full context" : agent.role}
+                  {humanActive ? "Human specialist" : agent.role}
                 </p>
                 <div className="mt-3 flex items-center justify-center gap-2">
                   <span
@@ -480,21 +455,9 @@ function CallScreen() {
                 </div>
               </div>
 
-              <div className="mt-3 flex min-h-8 items-center justify-center gap-2 text-center">
-                <Sparkles className="h-3 w-3 shrink-0 text-muted-2" />
-                <p className="max-w-md text-[10.5px] leading-relaxed text-muted">
-                  {session.reasoning ?? "Listening for the next turn"}
-                </p>
-              </div>
-
-              {humanActive ? (
-                <div className="mt-4 flex items-center gap-2 rounded-full border border-cyan/20 bg-cyan/[0.05] px-3 py-1.5">
-                  <Headphones className="h-3 w-3 text-cyan" />
-                  <p className="text-[10px] text-cyan/90">
-                    Sara joined · Ayesha is assisting silently · context shared
-                  </p>
-                </div>
-              ) : null}
+              <p className="mt-3 flex min-h-8 max-w-md items-center justify-center text-center text-[10.5px] leading-relaxed text-muted">
+                {session.reasoning ?? "Listening"}
+              </p>
             </div>
 
             <div className="relative border-t border-line bg-surface-2 px-4 py-4">
@@ -550,8 +513,7 @@ function CallScreen() {
                       Connecting you to a specialist
                     </h2>
                     <p className="mt-1.5 text-[11.5px] leading-relaxed text-muted">
-                      Ayesha is sharing the full conversation with Sara. You won&apos;t need to repeat
-                      anything.
+                      Please stay on the line.
                     </p>
                     <div className="mt-4 flex items-center justify-center gap-3 rounded-none border border-line bg-surface-2/50 px-3 py-2.5">
                       <AgentAvatar name={agent.name} color={agent.color} size="sm" />
@@ -582,53 +544,22 @@ function CallScreen() {
                         Simulate accept
                       </Button>
                     </div>
-                    <p className="mt-3 font-mono text-[8.5px] uppercase tracking-[0.12em] text-muted-2">
-                      context package · transcript · intent · confidence · tools
-                    </p>
                   </motion.div>
                 </motion.div>
               ) : null}
             </AnimatePresence>
           </Panel>
-
-          <div className="mt-3 flex flex-wrap items-center justify-between gap-2 px-1">
-            <div className="flex items-center gap-2 font-mono text-[8.5px] uppercase tracking-[0.1em] text-muted-2">
-              <Zap className="h-3 w-3 text-accent/60" />
-              LiveKit room · Azure STT + TTS · live audio
-            </div>
-            <div className="flex items-center gap-2">
-              <Badge tone="outline">Barge-in: on</Badge>
-              <Badge tone="outline">VAD: on</Badge>
-            </div>
-          </div>
         </main>
 
         <section className="order-3 min-w-0">
           <Panel className="flex h-full min-h-[420px] flex-col overflow-hidden">
             <div className="flex items-center justify-between border-b border-line px-3.5 py-3">
-              <div className="flex items-center gap-2">
-                <p className="text-[11.5px] font-medium text-ink">Live transcript</p>
-                <Badge tone="outline" className="px-1.5 py-0 text-[8.5px]">
-                  {detectedLanguages.map((language) => LANGUAGE_SHORT[language]).join(" · ")}
-                </Badge>
-              </div>
-              <span className="flex items-center gap-1 font-mono text-[8.5px] uppercase tracking-[0.1em] text-muted-2">
-                <span className="h-1 w-1 animate-pulse rounded-full bg-accent" />
-                auto-scroll
-              </span>
+              <p className="text-[11.5px] font-medium text-ink">Transcript</p>
+              <Badge tone="outline" className="px-1.5 py-0 text-[8.5px]">
+                {detectedLanguages.map((language) => LANGUAGE_SHORT[language]).join(" · ")}
+              </Badge>
             </div>
-            <Transcript session={session} className="h-[520px] flex-1 xl:h-[calc(100vh-210px)]" />
-            <div className="border-t border-line px-3.5 py-2.5">
-              <div className="flex items-center justify-between text-[9px] text-muted-2">
-                <span className="flex items-center gap-1">
-                  <ShieldAlert className="h-3 w-3" />
-                  PII masked in summary
-                </span>
-                <Link href="/sessions" className="flex items-center gap-0.5 hover:text-ink">
-                  Session log <ChevronRight className="h-2.5 w-2.5" />
-                </Link>
-              </div>
-            </div>
+            <Transcript session={session} className="h-[520px] flex-1 xl:h-[calc(100vh-160px)]" />
           </Panel>
         </section>
       </div>
@@ -658,7 +589,7 @@ function CallScreen() {
                 </div>
                 <div className="space-y-1.5">
                   <Button variant="secondary" size="sm" className="w-full justify-start" onClick={skipToEscalation}>
-                    <Sparkles className="h-3 w-3" />
+                    <FastForward className="h-3 w-3" />
                     Skip to escalation
                   </Button>
                   <Button
@@ -699,12 +630,9 @@ function CallScreen() {
                     onClick={end}
                   >
                     <PhoneOff className="h-3 w-3" />
-                    End &amp; generate summary
+                    End call
                   </Button>
                 </div>
-                <p className="mt-2 border-t border-line pt-2 text-[8.5px] leading-relaxed text-muted-2">
-                  Sandbox controls only. Real transfer happens in the supervisor window.
-                </p>
               </motion.div>
             ) : null}
           </AnimatePresence>
@@ -732,14 +660,11 @@ function CallScreen() {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               className="panel-raised w-full max-w-lg overflow-hidden"
             >
-              <div className="border-b border-line bg-gradient-to-b from-accent/[0.06] to-transparent px-6 py-6 text-center">
+              <div className="border-b border-line px-6 py-6 text-center">
                 <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-accent/25 bg-accent/10">
                   <CheckCircle2 className="h-5 w-5 text-accent" />
                 </div>
-                <h2 className="mt-3 font-display text-[28px] font-light tracking-[-0.02em] text-ink">Call resolved</h2>
-                <p className="mt-1 text-[11.5px] text-muted">
-                  Summary, transcript, and handoff record are ready.
-                </p>
+                <h2 className="mt-3 font-display text-[26px] font-light tracking-[-0.02em] text-ink">Call resolved</h2>
               </div>
               <div className="grid grid-cols-3 divide-x divide-line border-b border-line">
                 <div className="px-3 py-3 text-center">
@@ -772,13 +697,10 @@ function CallScreen() {
                   <Link href="/">
                     <Button variant="secondary" size="sm" className="w-full">
                       <ArrowLeft className="h-3 w-3" />
-                      Dashboard
+                      Overview
                     </Button>
                   </Link>
                 </div>
-                <p className="mt-3 text-center font-mono text-[8.5px] uppercase tracking-[0.12em] text-muted-2">
-                  {session.id} · summary generated from transcript
-                </p>
               </div>
             </motion.div>
           </motion.div>
@@ -786,6 +708,19 @@ function CallScreen() {
       </AnimatePresence>
     </div>
   );
+}
+
+function CallRouter() {
+  const params = useParams<{ sessionId: string }>();
+  const searchParams = useSearchParams();
+  const agentId = searchParams.get("agent") ?? "ag_ayesha";
+  const agent = useAgent(agentId) ?? agentById(agentId) ?? seedAgents[0];
+
+  if (searchParams.get("mode") === "live") {
+    const sessionId = Array.isArray(params.sessionId) ? params.sessionId[0] : params.sessionId;
+    return <LiveCall sessionId={sessionId} agent={agent} />;
+  }
+  return <CallScreen />;
 }
 
 export default function CallPage() {
@@ -797,7 +732,7 @@ export default function CallPage() {
         </div>
       }
     >
-      <CallScreen />
+      <CallRouter />
     </Suspense>
   );
 }

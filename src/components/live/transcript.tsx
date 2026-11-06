@@ -51,7 +51,6 @@ export function Transcript({
               <Bot className="h-4 w-4" />
             </span>
             <p className="mt-3 text-[11.5px] text-muted">Connecting audio...</p>
-            <p className="mt-0.5 font-mono text-[9px] text-muted-2">Live transcript will appear here</p>
           </div>
         ) : null}
 

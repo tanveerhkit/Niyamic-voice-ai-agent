@@ -432,7 +432,6 @@ export function Modal({
       >
         <div className="flex items-start justify-between gap-4 border-b border-line px-5 py-4">
           <div>
-            <p className="eyebrow mb-1.5">Niyamic Echo</p>
             <h2 className="font-display text-[22px] font-normal leading-tight tracking-[-0.02em] text-ink">{title}</h2>
             {description ? <p className="mt-1.5 text-[12px] leading-relaxed text-muted">{description}</p> : null}
           </div>

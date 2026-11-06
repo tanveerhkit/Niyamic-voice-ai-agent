@@ -5,19 +5,14 @@ import { useEffect, useMemo, useState } from "react";
 import {
   ArrowLeftRight,
   ArrowUpRight,
-  CheckCircle2,
-  Clock,
   Headphones,
   Inbox,
   Loader2,
   MessageSquare,
-  Mic,
   PhoneOff,
   Play,
   Send,
   ShieldAlert,
-  Sparkles,
-  Zap,
 } from "lucide-react";
 import { agentById, seedAgents } from "@/lib/agents";
 import { HANDOFF_TURNS } from "@/lib/call-script";
@@ -209,20 +204,15 @@ export default function SupervisorPage() {
   return (
     <div className="mx-auto max-w-[1440px] px-4 py-6 lg:px-7 lg:py-8">
       <PageHeader
-        eyebrow="04 — Human desk · live handoff"
-        title={
-          <>
-            Take over without missing a <span className="font-serif italic text-cyan">beat</span>.
-          </>
-        }
-        description="When the AI escalates, the call is already warm. The transcript, intent, confidence, and tool results arrive before you say hello."
+        title="Supervisor"
+        description={`${waiting} waiting · ${activeHuman} in progress`}
         actions={
           <>
             <button
               type="button"
               onClick={() => setAvailable((value) => !value)}
               className={cn(
-                "inline-flex h-10 items-center gap-2 rounded-xl border px-3 text-[12px] font-medium transition-colors",
+                "inline-flex h-9 items-center gap-2 border px-3 font-mono text-[10px] font-medium uppercase tracking-[0.14em] transition-colors",
                 available
                   ? "border-green/25 bg-green/10 text-green"
                   : "border-line bg-surface-2 text-muted",
@@ -239,50 +229,10 @@ export default function SupervisorPage() {
         }
       />
 
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-        <Panel className="p-3.5">
-          <div className="flex items-center gap-2 text-muted-2">
-            <Inbox className="h-3.5 w-3.5" />
-            <span className="font-mono text-[9px] uppercase tracking-[0.14em]">Waiting</span>
-          </div>
-          <p className={cn("mt-2 text-[22px] font-semibold tracking-[-0.04em]", waiting ? "text-amber" : "text-ink")}>
-            {waiting}
-          </p>
-          <p className="text-[10px] text-muted-2">handoffs in queue</p>
-        </Panel>
-        <Panel className="p-3.5">
-          <div className="flex items-center gap-2 text-muted-2">
-            <Clock className="h-3.5 w-3.5" />
-            <span className="font-mono text-[9px] uppercase tracking-[0.14em]">Avg. wait</span>
-          </div>
-          <p className="mt-2 text-[22px] font-semibold tracking-[-0.04em] text-ink">0:38</p>
-          <p className="text-[10px] text-muted-2">from request to join</p>
-        </Panel>
-        <Panel className="p-3.5">
-          <div className="flex items-center gap-2 text-muted-2">
-            <Headphones className="h-3.5 w-3.5" />
-            <span className="font-mono text-[9px] uppercase tracking-[0.14em]">In progress</span>
-          </div>
-          <p className="mt-2 text-[22px] font-semibold tracking-[-0.04em] text-ink">{activeHuman}</p>
-          <p className="text-[10px] text-muted-2">human-led sessions</p>
-        </Panel>
-        <Panel className="p-3.5">
-          <div className="flex items-center gap-2 text-muted-2">
-            <CheckCircle2 className="h-3.5 w-3.5" />
-            <span className="font-mono text-[9px] uppercase tracking-[0.14em]">Resolved</span>
-          </div>
-          <p className="mt-2 text-[22px] font-semibold tracking-[-0.04em] text-ink">14</p>
-          <p className="text-[10px] text-muted-2">today · 4.8 CSAT</p>
-        </Panel>
-      </div>
-
-      <div className="mt-4 grid grid-cols-1 gap-4 xl:grid-cols-[320px_minmax(0,1fr)]">
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-[320px_minmax(0,1fr)]">
         <Panel className="flex max-h-[760px] flex-col overflow-hidden">
           <div className="flex items-center justify-between border-b border-line px-4 py-3">
-            <div>
-              <p className="text-[13px] font-medium text-ink">Live queue</p>
-              <p className="mt-0.5 text-[10px] text-muted">Escalations first, then active calls.</p>
-            </div>
+            <p className="text-[13px] font-medium text-ink">Live queue</p>
             <Badge tone={waiting ? "amber" : "outline"} dot>
               {waiting} waiting
             </Badge>
@@ -291,14 +241,8 @@ export default function SupervisorPage() {
             {live.length === 0 ? (
               <EmptyState
                 icon={<Inbox className="h-5 w-5" />}
-                title="No live calls yet"
-                description="Start a customer call. When Ayesha escalates, it lands here with the full context package."
-                action={
-                  <Button variant="primary" size="sm" onClick={startDemoCall}>
-                    <Play className="h-3 w-3" />
-                    Open customer window
-                  </Button>
-                }
+                title="No live calls"
+                description="Escalated calls appear here."
               />
             ) : (
               live.map((session) => (
@@ -316,12 +260,6 @@ export default function SupervisorPage() {
                 />
               ))
             )}
-          </div>
-          <div className="border-t border-line px-4 py-2.5">
-            <p className="flex items-center gap-1.5 font-mono text-[8.5px] uppercase tracking-[0.1em] text-muted-2">
-              <Zap className="h-2.5 w-2.5 text-accent/60" />
-              LiveKit room · same session as customer
-            </p>
           </div>
         </Panel>
 
@@ -372,9 +310,9 @@ export default function SupervisorPage() {
                       <ShieldAlert className="h-3.5 w-3.5" />
                     </span>
                     <div>
-                      <p className="text-[11.5px] font-medium text-amber">Ayesha is holding the call</p>
+                      <p className="text-[11.5px] font-medium text-amber">Handoff requested</p>
                       <p className="mt-0.5 text-[10.5px] leading-relaxed text-amber/80">
-                        {selected.handoff?.reason ?? "Escalation requested"} · context package ready.
+                        {selected.handoff?.reason ?? "Escalation requested"}
                       </p>
                     </div>
                   </div>
@@ -393,16 +331,11 @@ export default function SupervisorPage() {
 
               {selected.status === "human_active" ? (
                 <div className="flex flex-col justify-between gap-3 border-b border-cyan/20 bg-cyan/[0.045] px-4 py-3 sm:flex-row sm:items-center">
-                  <div className="flex items-start gap-2.5">
-                    <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-cyan/25 bg-cyan/10 text-cyan">
+                  <div className="flex items-center gap-2.5">
+                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-cyan/25 bg-cyan/10 text-cyan">
                       <Headphones className="h-3.5 w-3.5" />
                     </span>
-                    <div>
-                      <p className="text-[11.5px] font-medium text-cyan">You have control</p>
-                      <p className="mt-0.5 text-[10.5px] leading-relaxed text-cyan/80">
-                        Ayesha is assisting silently. The customer can hear you now.
-                      </p>
-                    </div>
+                    <p className="text-[11.5px] font-medium text-cyan">You have control</p>
                   </div>
                   <div className="flex items-center gap-2">
                     <Button variant="secondary" size="sm" onClick={playHandoff} disabled={playing}>
@@ -461,17 +394,13 @@ export default function SupervisorPage() {
                             <Send className="h-3.5 w-3.5" />
                           </Button>
                         </div>
-                        <p className="mt-2 flex items-center gap-1.5 font-mono text-[8px] uppercase tracking-[0.1em] text-muted-2">
-                          <Mic className="h-2.5 w-2.5" />
-                          Live takeover · message appears as spoken · AI is silent
-                        </p>
                       </>
                     ) : (
                       <div className="flex items-center justify-between rounded-lg border border-line bg-surface-2/50 px-3 py-2.5">
                         <p className="text-[10px] text-muted">
                           {selected.status === "escalating"
                             ? "Accept the handoff to take control."
-                            : "AI is handling this call. Monitor or wait for escalation."}
+                            : "AI is handling this call."}
                         </p>
                         {selected.status === "escalating" ? (
                           <Button variant="primary" size="sm" onClick={accept}>
@@ -489,12 +418,9 @@ export default function SupervisorPage() {
 
                 <aside className="p-3">
                   <div className="rounded-xl border border-line bg-surface-2/50 p-3">
-                    <div className="flex items-center gap-1.5">
-                      <Sparkles className="h-3 w-3 text-accent" />
-                      <p className="font-mono text-[8.5px] uppercase tracking-[0.12em] text-accent">
-                        AI context
-                      </p>
-                    </div>
+                    <p className="font-mono text-[8.5px] uppercase tracking-[0.12em] text-muted-2">
+                      Summary
+                    </p>
                     <p className="mt-2 text-[10.5px] leading-relaxed text-muted">
                       Customer reports a duplicate ${"49.00"} charge on order 4821. AI verified two
                       captures and identified one duplicate.
@@ -519,10 +445,10 @@ export default function SupervisorPage() {
 
                   <div className="mt-2 rounded-xl border border-amber/20 bg-amber/[0.04] p-3">
                     <p className="font-mono text-[8.5px] uppercase tracking-[0.12em] text-amber">
-                      Needs human
+                      Action required
                     </p>
                     <p className="mt-1.5 text-[10px] leading-relaxed text-amber/90">
-                      Cancel the order and refund to the card. Policy exception — outside AI authority.
+                      Cancel the order and refund to the card.
                     </p>
                   </div>
 
@@ -577,55 +503,22 @@ export default function SupervisorPage() {
                 </aside>
               </div>
             </Panel>
-
-            <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-line bg-surface-2 px-4 py-2.5">
-              <div className="flex items-center gap-2 text-[9.5px] text-muted-2">
-                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-green" />
-                Customer is hearing {selected.control === "human" ? "Sara" : "Ayesha"} ·{" "}
-                {formatDuration(elapsed)} elapsed
-              </div>
-              <div className="flex items-center gap-2">
-                <Badge tone="outline">{selected.id}</Badge>
-                <Link href="/sessions" className="text-[9.5px] text-muted hover:text-ink">
-                  Session log
-                </Link>
-              </div>
-            </div>
           </div>
         ) : (
           <Panel className="flex min-h-[540px] items-center justify-center">
-            <div className="max-w-md px-6 text-center">
-              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl border border-line bg-surface-2 text-muted">
-                <Headphones className="h-5 w-5" />
-              </div>
-              <h2 className="mt-4 font-display text-[22px] font-normal tracking-[-0.02em] text-ink">The desk is quiet.</h2>
-              <p className="mt-1.5 text-[11.5px] leading-relaxed text-muted">
-                Start a customer call in a new window. When the AI hits a policy edge or the customer
-                asks for a person, the handoff appears here with the full conversation attached.
-              </p>
-              <div className="mt-4 flex justify-center gap-2">
+            <EmptyState
+              icon={<Headphones className="h-5 w-5" />}
+              title="No call selected"
+              description="Select a call from the queue, or start a test call."
+              action={
                 <Button variant="primary" size="sm" onClick={startDemoCall}>
                   <Play className="h-3 w-3" />
-                  Open customer window
+                  Start test call
                 </Button>
-                <Link href="/">
-                  <Button variant="secondary" size="sm">
-                    Back to dashboard
-                  </Button>
-                </Link>
-              </div>
-            </div>
+              }
+            />
           </Panel>
         )}
-      </div>
-
-      <div className="mt-4 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-line bg-surface-2 px-4 py-2.5">
-        <p className="flex items-center gap-2 text-[9.5px] text-muted-2">
-          <Zap className="h-3 w-3 text-accent/60" />
-          Handoff keeps the LiveKit room alive. Context is transferred as a structured event, not a
-          warm transfer call.
-        </p>
-        <Badge tone="outline">Supervisor console</Badge>
       </div>
     </div>
   );

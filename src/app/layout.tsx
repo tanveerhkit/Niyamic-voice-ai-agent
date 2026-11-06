@@ -25,9 +25,8 @@ const fraunces = Fraunces({
 });
 
 export const metadata: Metadata = {
-  title: "Niyamic Echo — Voice agents that know when to hand off",
-  description:
-    "Niyamic Echo is a real-time AI voice agent platform with seamless human transfer, live transcript, and post-call intelligence. Built with human judgment.",
+  title: "Niyamic Echo",
+  description: "AI voice agents with human handoff.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

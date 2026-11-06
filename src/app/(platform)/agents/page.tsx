@@ -3,16 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
-import {
-  ArrowUpRight,
-  Bot,
-  CheckCircle2,
-  FlaskConical,
-  Layers,
-  Plus,
-  Sparkles,
-  Wrench,
-} from "lucide-react";
+import { ArrowUpRight, FlaskConical, Plus } from "lucide-react";
 import { useAgents, newAgentTemplate, saveAgent } from "@/lib/agent-store";
 import { useAllSessions } from "@/lib/live-store";
 import { computeAgentPerformance } from "@/lib/analytics";
@@ -70,7 +61,7 @@ function AgentCard({
       </div>
 
       <p className="mt-3 line-clamp-2 text-[11.5px] leading-relaxed text-muted">
-        {agent.description || "No description yet. Add a purpose and persona in the builder."}
+        {agent.description || "No description"}
       </p>
 
       <div className="mt-4 grid grid-cols-3 gap-2 rounded-xl border border-line bg-surface-2 p-2.5">
@@ -137,7 +128,6 @@ export default function AgentsPage() {
 
   const activeCount = agents.filter((agent) => agent.status === "active").length;
   const draftCount = agents.filter((agent) => agent.status === "draft").length;
-  const totalLanguages = new Set(agents.flatMap((agent) => agent.languages)).size;
 
   const createAgent = () => {
     const agent = newAgentTemplate();
@@ -148,13 +138,7 @@ export default function AgentsPage() {
   return (
     <div className="mx-auto max-w-[1440px] px-4 py-6 lg:px-7 lg:py-8">
       <PageHeader
-        eyebrow="02 — Agent fleet"
-        title={
-          <>
-            Build the team that <span className="font-serif italic text-accent">never sleeps</span>.
-          </>
-        }
-        description="Each agent has a purpose, persona, language set, knowledge, tools, and an escalation policy. Test in the sandbox before it ever talks to a customer."
+        title="Agents"
         actions={
           <Button variant="primary" onClick={createAgent}>
             <Plus className="h-3.5 w-3.5" />
@@ -163,56 +147,16 @@ export default function AgentsPage() {
         }
       />
 
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-        <Panel className="p-3.5">
-          <div className="flex items-center gap-2 text-muted-2">
-            <Bot className="h-3.5 w-3.5" />
-            <span className="font-mono text-[9px] uppercase tracking-[0.14em]">Active</span>
-          </div>
-          <p className="mt-2 text-[22px] font-semibold tracking-[-0.04em] text-ink">{activeCount}</p>
-          <p className="text-[10px] text-muted-2">agents in production</p>
-        </Panel>
-        <Panel className="p-3.5">
-          <div className="flex items-center gap-2 text-muted-2">
-            <Layers className="h-3.5 w-3.5" />
-            <span className="font-mono text-[9px] uppercase tracking-[0.14em]">Languages</span>
-          </div>
-          <p className="mt-2 text-[22px] font-semibold tracking-[-0.04em] text-ink">{totalLanguages}</p>
-          <p className="text-[10px] text-muted-2">English · Urdu · Hindi</p>
-        </Panel>
-        <Panel className="p-3.5">
-          <div className="flex items-center gap-2 text-muted-2">
-            <Sparkles className="h-3.5 w-3.5" />
-            <span className="font-mono text-[9px] uppercase tracking-[0.14em]">Drafts</span>
-          </div>
-          <p className="mt-2 text-[22px] font-semibold tracking-[-0.04em] text-ink">{draftCount}</p>
-          <p className="text-[10px] text-muted-2">waiting on a sandbox run</p>
-        </Panel>
-        <Panel className="p-3.5">
-          <div className="flex items-center gap-2 text-muted-2">
-            <Wrench className="h-3.5 w-3.5" />
-            <span className="font-mono text-[9px] uppercase tracking-[0.14em]">Tools</span>
-          </div>
-          <p className="mt-2 text-[22px] font-semibold tracking-[-0.04em] text-ink">5</p>
-          <p className="text-[10px] text-muted-2">sandbox integrations available</p>
-        </Panel>
-      </div>
-
-      <div className="mt-6 flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
-        <Tabs
-          items={[
-            { id: "all", label: `All agents · ${agents.length}` },
-            { id: "active", label: `Active · ${activeCount}` },
-            { id: "draft", label: `Drafts · ${draftCount}` },
-          ]}
-          value={filter}
-          onChange={setFilter}
-        />
-        <div className="flex items-center gap-2 text-[10.5px] text-muted-2">
-          <CheckCircle2 className="h-3.5 w-3.5 text-green" />
-          Sandbox-first · no production tools connected
-        </div>
-      </div>
+      <Tabs
+        items={[
+          { id: "all", label: `All agents · ${agents.length}` },
+          { id: "active", label: `Active · ${activeCount}` },
+          { id: "draft", label: `Drafts · ${draftCount}` },
+        ]}
+        value={filter}
+        onChange={setFilter}
+        className="w-fit"
+      />
 
       <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2 xl:grid-cols-3">
         {filtered.map((agent) => {
@@ -237,20 +181,9 @@ export default function AgentsPage() {
             <span className="flex h-11 w-11 items-center justify-center rounded-2xl border border-line bg-surface-2 text-muted transition-colors group-hover:border-accent/25 group-hover:text-accent">
               <Plus className="h-5 w-5" />
             </span>
-            <span className="mt-3 text-[13px] font-medium text-ink">Create a new agent</span>
-            <span className="mt-1 max-w-[220px] text-[11px] leading-relaxed text-muted">
-              Start from a blank persona, or duplicate an existing agent to keep the escalation policy.
-            </span>
+            <span className="mt-3 text-[13px] font-medium text-ink">New agent</span>
           </button>
         ) : null}
-      </div>
-
-      <div className="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-line bg-surface-2 px-4 py-3">
-        <div className="flex items-center gap-2 text-[10.5px] text-muted-2">
-          <CheckCircle2 className="h-3.5 w-3.5 text-accent/70" />
-          Changes are saved locally in sandbox mode. Real agent versions will deploy through LiveKit dispatch.
-        </div>
-        <Badge tone="outline">Human transfer enabled</Badge>
       </div>
     </div>
   );

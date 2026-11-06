@@ -7,13 +7,9 @@ import {
   ArrowLeft,
   ArrowUpRight,
   CheckCircle2,
-  FlaskConical,
-  Gauge,
   Play,
   RotateCcw,
   Send,
-  Sparkles,
-  Wand2,
   Wrench,
 } from "lucide-react";
 import { useAgent } from "@/lib/agent-store";
@@ -21,7 +17,7 @@ import type { Language } from "@/lib/types";
 import { cn, LANGUAGE_NATIVE, LANGUAGE_SHORT, uid } from "@/lib/utils";
 import { AgentAvatar } from "@/components/brand";
 import { PageHeader } from "@/components/dashboard";
-import { Badge, Button, Input, Panel, Progress, SectionTitle } from "@/components/ui";
+import { Button, Input, Panel, Progress, SectionTitle } from "@/components/ui";
 
 type SandboxMessage = {
   id: string;
@@ -205,8 +201,7 @@ export default function SandboxPage() {
   if (!agent) {
     return (
       <div className="mx-auto max-w-3xl px-4 py-20 text-center">
-        <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-2">Sandbox</p>
-        <h1 className="mt-3 text-2xl font-medium text-ink">Agent not found.</h1>
+        <h1 className="text-2xl font-medium text-ink">Agent not found</h1>
         <Link href="/agents" className="mt-6 inline-block">
           <Button variant="primary">Back to agents</Button>
         </Link>
@@ -217,14 +212,8 @@ export default function SandboxPage() {
   return (
     <div className="mx-auto max-w-[1440px] px-4 py-6 lg:px-7 lg:py-8">
       <PageHeader
-        eyebrow="02 — Sandbox · isolated test environment"
-        title={
-          <>
-            Test <span className="font-serif italic text-accent">{agent.name}</span> before a customer
-            does.
-          </>
-        }
-        description="Sandbox tools, test data, no production access. Try an escalation, a language switch, or a policy edge case."
+        title="Sandbox"
+        description={`${agent.name} · v${agent.version}`}
         actions={
           <>
             <Link href={`/agents/${agent.id}`}>
@@ -256,14 +245,9 @@ export default function SandboxPage() {
             <div className="flex items-center gap-3">
               <AgentAvatar name={agent.name} color={agent.color} size="md" status="active" />
               <div>
-                <div className="flex items-center gap-2">
-                  <p className="text-[13px] font-medium text-ink">{agent.name}</p>
-                  <Badge tone="cyan" dot>
-                    Sandbox
-                  </Badge>
-                </div>
+                <p className="text-[13px] font-medium text-ink">{agent.name}</p>
                 <p className="font-mono text-[9px] uppercase tracking-[0.1em] text-muted-2">
-                  {agent.id} · sandbox tools · v{agent.version}
+                  {agent.role}
                 </p>
               </div>
             </div>
@@ -307,9 +291,6 @@ export default function SandboxPage() {
                           <p className="mt-0.5 text-[10px] text-muted">{message.tool.result}</p>
                         </div>
                       ) : null}
-                      <p className="mt-2 font-mono text-[9px] text-muted-2">
-                        Context shared instantly · transcript, intent, confidence
-                      </p>
                     </div>
                   </div>
                 );
@@ -404,24 +385,17 @@ export default function SandboxPage() {
                 Send
               </Button>
             </div>
-            <p className="mt-2 text-center font-mono text-[8.5px] uppercase tracking-[0.12em] text-muted-2">
-              Sandbox · simulated responses · no production data
-            </p>
           </div>
         </Panel>
 
         <div className="space-y-4">
           <Panel className="p-4">
-            <SectionTitle
-              title="Test scenarios"
-              description="One click to load a realistic case."
-              action={<Wand2 className="h-3.5 w-3.5 text-muted-2" />}
-            />
+            <SectionTitle title="Test scenarios" />
             <div className="mt-3 space-y-2">
               {[
-                { label: "Duplicate charge", prompt: SAMPLES[language][0], tone: "accent" as const },
-                { label: "Ask for a human", prompt: SAMPLES[language][1], tone: "amber" as const },
-                { label: "Delivery delay", prompt: SAMPLES[language][2], tone: "cyan" as const },
+                { label: "Duplicate charge", prompt: SAMPLES[language][0] },
+                { label: "Ask for a human", prompt: SAMPLES[language][1] },
+                { label: "Delivery delay", prompt: SAMPLES[language][2] },
               ].map((scenario) => (
                 <button
                   key={scenario.label}
@@ -429,18 +403,6 @@ export default function SandboxPage() {
                   onClick={() => send(scenario.prompt)}
                   className="flex w-full items-center gap-3 rounded-none border border-line bg-surface-2/50 px-3 py-2.5 text-left transition-colors hover:border-line-strong hover:bg-surface-2"
                 >
-                  <span
-                    className={cn(
-                      "flex h-7 w-7 items-center justify-center rounded-none",
-                      scenario.tone === "accent"
-                        ? "bg-accent/10 text-accent"
-                        : scenario.tone === "amber"
-                          ? "bg-amber/10 text-amber"
-                          : "bg-cyan/10 text-cyan",
-                    )}
-                  >
-                    <Sparkles className="h-3.5 w-3.5" />
-                  </span>
                   <span className="min-w-0 flex-1">
                     <span className="block text-[11.5px] font-medium text-ink">{scenario.label}</span>
                     <span className="mt-0.5 block truncate text-[9.5px] text-muted-2">
@@ -456,8 +418,7 @@ export default function SandboxPage() {
           <Panel className="p-4">
             <SectionTitle
               title="Evaluation"
-              description="Run a regression suite on this agent."
-              action={<FlaskConical className="h-3.5 w-3.5 text-muted-2" />}
+              action={<span className="font-mono text-[9px] text-muted-2">12 scenarios</span>}
             />
             {evaluated ? (
               <div className="mt-3 space-y-3">
@@ -475,7 +436,7 @@ export default function SandboxPage() {
                 ))}
                 <div className="flex items-center gap-2 rounded-none border border-green/15 bg-green/[0.04] px-2.5 py-2">
                   <CheckCircle2 className="h-3.5 w-3.5 text-green" />
-                  <p className="text-[10px] text-green">12 / 12 evaluation scenarios passed</p>
+                  <p className="text-[10px] text-green">12 of 12 scenarios passed</p>
                 </div>
                 <Button variant="outline" size="sm" className="w-full" onClick={() => setEvaluated(false)}>
                   Run again
@@ -483,20 +444,10 @@ export default function SandboxPage() {
               </div>
             ) : (
               <div className="mt-3">
-                <div className="rounded-none border border-line bg-surface-2/50 p-3">
-                  <p className="text-[11px] leading-relaxed text-muted">
-                    Tests intent handling, policy compliance, tone, and escalation precision against
-                    the current version.
-                  </p>
-                  <div className="mt-2 flex items-center gap-2 font-mono text-[9px] text-muted-2">
-                    <Gauge className="h-3 w-3" />
-                    12 scenarios · sandbox evaluator
-                  </div>
-                </div>
                 <Button
                   variant="secondary"
                   size="sm"
-                  className="mt-3 w-full"
+                  className="w-full"
                   onClick={() => {
                     setEvaluating(true);
                     window.setTimeout(() => {
@@ -523,7 +474,7 @@ export default function SandboxPage() {
           </Panel>
 
           <Panel className="p-4">
-            <SectionTitle title="Session telemetry" description="Live values from this sandbox chat." />
+            <SectionTitle title="Telemetry" />
             <div className="mt-3 grid grid-cols-2 gap-2">
               <div className="rounded-none border border-line bg-surface-2/50 p-2.5">
                 <p className="font-mono text-[8.5px] uppercase tracking-[0.12em] text-muted-2">
@@ -549,7 +500,7 @@ export default function SandboxPage() {
           </Panel>
 
           <Panel className="p-4">
-            <SectionTitle title="Config snapshot" description="What this sandbox is testing." />
+            <SectionTitle title="Configuration" />
             <div className="mt-3 space-y-2 text-[10.5px]">
               <div className="flex items-center justify-between border-b border-line pb-2">
                 <span className="text-muted">Escalate below</span>
