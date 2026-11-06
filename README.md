@@ -49,7 +49,7 @@ Use **one browser profile with two tabs**. Niyamic Echo syncs live calls through
 On the dashboard:
 
 - 1,284 conversations, **78.8% AI containment**, 14.5% human transfers, 3m 52s average handle time.
-- Point out **Live now** on the right and the **Why calls escalate** breakdown.
+- Point out **Live calls** on the right and the **Escalation reasons** breakdown.
 - Say the line: *“The AI owns the call until it has a reason not to. The human joins the same room — not a new call.”*
 - Everything is a deterministic mock dataset. No external services are called.
 
@@ -57,8 +57,8 @@ On the dashboard:
 
 1. Open **Agents → Ayesha**.
 2. Show the persona, English/Urdu/Hindi, tools, escalation policy, and the version history.
-3. Click **Open sandbox** (or go to `/agents/ag_ayesha/sandbox`).
-4. Click **Duplicate charge** under test scenarios. Show the agent response, the evaluation panel, confidence/risk telemetry, and the config snapshot.
+3. Click **Test in sandbox** (or go to `/agents/ag_ayesha/sandbox`).
+4. Click **Duplicate charge** under test scenarios. Show the agent response, the evaluation panel, confidence/risk telemetry, and the configuration panel.
 5. Optional: **Run evaluation** to show the regression suite result.
 
 ### 1:30–3:30 — Live call + human handoff
@@ -72,8 +72,8 @@ In **Tab B**, click **Start live call** (top right). This opens `/call/SES-LIVE-
 
 Switch to **Tab A** (`/supervisor`):
 
-- **Waiting: 1** — Zara Ahmed, duplicate charge, high risk.
-- Show the **AI context** panel (order, amount, confidence, tools) and the conversation transcript.
+- **1 waiting** — Zara Ahmed, duplicate charge, high risk. The Supervisor nav item shows the same count.
+- Show the **Summary** panel (order, amount, confidence, tools) and the conversation transcript.
 - Click **Play handoff**. This accepts the call as Sara, sends the four scripted handoff turns, and returns control to Ayesha in one click (~8 seconds).
 - Alternatively, demo the manual version: **Accept handoff** → **Play script** → **Return to AI**.
 
@@ -101,16 +101,16 @@ On `/sessions/SES-LIVE-...`:
 Open **Analytics**:
 
 - Containment, transfer rate, average handle time, CSAT.
-- Sessions & containment chart, top escalation reasons, language performance, sentiment, intent heatmap.
-- Agent performance (Ayesha, Maya, Omar) and “Where AI needs help.”
-- Failed & abandoned sessions link to real records.
+- Sessions & containment chart, escalation reasons, containment by language, sentiment, intents.
+- Agent performance (Ayesha, Maya, Omar) and **Insights**.
+- **Abandoned sessions** link to real records.
 
 Open **Integrations**:
 
-- LiveKit, Azure Speech, Azure OpenAI are **queued** on credentials.
+- LiveKit, Azure Speech, Azure OpenAI show **Setup required** (credentials).
 - CRM is **connected** through mock tools.
 - SIP and webhooks are optional/not configured for the laptop demo.
-- The runtime switches and “what replaces what” table make the real-audio path explicit.
+- **Configure** on each card lists the environment keys it needs.
 
 ### Reset between rehearsals
 
@@ -128,7 +128,7 @@ Open **Integrations**:
 | `/agents` | Agents | Active + draft agents with containment and transfer stats |
 | `/agents/[id]` | Agent Builder | Persona, languages, tools, escalation policy, version history |
 | `/agents/[id]/sandbox` | Sandbox | Scripted test chat, scenarios, evaluation, telemetry |
-| `/supervisor` | Human Desk | Live queue, AI context, transcript, accept/play/return controls |
+| `/supervisor` | Human Desk | Live queue, call summary, transcript, accept/play/return controls |
 | `/sessions` | Session Log | Searchable record of 1,284 sessions |
 | `/sessions/[id]` | Post-Session | Summary, key moments, transcript, handoff log, recording, export |
 | `/analytics` | Analytics | Containment, drivers, language, sentiment, intents, agents |
