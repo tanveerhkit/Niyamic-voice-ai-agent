@@ -33,7 +33,7 @@ import {
   applyHumanTurn,
   applyReturnToAI,
 } from "@/lib/live-actions";
-import { resetLive } from "@/lib/live-store";
+import { resetLive, useLiveHeartbeat } from "@/lib/live-store";
 import { HANDOFF_TURNS } from "@/lib/call-script";
 import type { Language, LiveSession } from "@/lib/types";
 import { cn, formatDuration, LANGUAGE_NATIVE, LANGUAGE_SHORT, sleep } from "@/lib/utils";
@@ -105,6 +105,7 @@ function CallScreen() {
     sessionId,
     agent.id,
   );
+  useLiveHeartbeat(sessionId);
 
   const [now, setNow] = useState(() => Date.now());
   const [demoOpen, setDemoOpen] = useState(false);

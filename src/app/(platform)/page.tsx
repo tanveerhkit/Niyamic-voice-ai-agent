@@ -18,8 +18,8 @@ import {
   computeTransferReasons,
   computeVolumeSeries,
 } from "@/lib/analytics";
-import { demoLiveSessions } from "@/lib/seed";
 import { formatHandleTime } from "@/lib/utils";
+import { useActiveCalls } from "@/lib/voice-api";
 import {
   AgentPerformanceList,
   LiveNowCard,
@@ -31,9 +31,17 @@ import {
 import { Badge, Button, Panel, SectionTitle } from "@/components/ui";
 import { ContainmentTrend, SessionsChart } from "@/components/charts";
 
+const VOICE_STATE: Record<string, string> = {
+  listening: "AI listening",
+  idle: "AI listening",
+  thinking: "AI thinking",
+  speaking: "AI speaking",
+};
+
 export default function OverviewPage() {
   const sessions = useAllSessions();
   const liveSessions = useLiveSessions();
+  const activeCalls = useActiveCalls();
   const [chartMode, setChartMode] = useState<"volume" | "containment">("volume");
   const [now, setNow] = useState(() => Date.now());
 
@@ -48,23 +56,33 @@ export default function OverviewPage() {
   const reasons = useMemo(() => computeTransferReasons(sessions), [sessions]);
   const performance = useMemo(() => computeAgentPerformance(sessions), [sessions]);
 
-  const active = liveSessions.filter((session) => session.status !== "ended").slice(0, 3);
-  const liveRows = active.length
-    ? active.map((session) => ({
-        id: session.id,
-        agentId: session.agentId,
-        customerName: session.customerName,
-        language: session.language,
-        elapsedSec: Math.floor((now - session.startedAt) / 1000),
-        risk: session.risk,
-        state:
-          session.status === "escalating"
-            ? "Awaiting human"
-            : session.status === "human_active"
-              ? "Human active"
-              : "AI active",
-      }))
-    : demoLiveSessions;
+  const voiceRows = activeCalls.calls.map((call) => ({
+    id: call.id,
+    agentId: call.agentId,
+    agentLabel: call.agentName,
+    customerName: call.customerName,
+    language: "en" as const,
+    elapsedSec: call.elapsedSec + Math.max(0, Math.floor((now - activeCalls.fetchedAt) / 1000)),
+    state: VOICE_STATE[call.agentState] ?? "Connecting",
+  }));
+  const scriptedRows = liveSessions
+    .filter((session) => session.status !== "ended")
+    .map((session) => ({
+      id: session.id,
+      agentId: session.agentId,
+      customerName: session.customerName,
+      language: session.language,
+      elapsedSec: Math.floor((now - session.startedAt) / 1000),
+      risk: session.risk,
+      state:
+        session.status === "escalating"
+          ? "Awaiting human"
+          : session.status === "human_active"
+            ? "Human active"
+            : "AI active",
+    }));
+  const liveCount = voiceRows.length + scriptedRows.length;
+  const liveRows = [...voiceRows, ...scriptedRows].slice(0, 3);
 
   const transfers = Math.round((overview.transferRate / 100) * overview.total);
 
@@ -225,8 +243,8 @@ export default function OverviewPage() {
             <div className="mb-3 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <SectionTitle title="Live calls" />
-                <Badge tone="red" dot>
-                  {liveRows.length}
+                <Badge tone={liveCount ? "red" : "outline"} dot={liveCount > 0}>
+                  {liveCount}
                 </Badge>
               </div>
               <Link
@@ -236,7 +254,13 @@ export default function OverviewPage() {
                 Supervisor <ArrowUpRight className="h-3 w-3" />
               </Link>
             </div>
-            <LiveNowCard sessions={liveRows} />
+            {liveRows.length ? (
+              <LiveNowCard sessions={liveRows} />
+            ) : (
+              <p className="border border-dashed border-line px-3 py-5 text-center text-[11px] text-muted">
+                No calls in progress
+              </p>
+            )}
           </Panel>
 
           <Panel className="p-4">
