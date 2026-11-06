@@ -44,3 +44,9 @@ next-env.d.ts
 # local agent notes
 AGENTS.md
 
+
+# python backend
+backend/.venv/
+backend/storage/
+__pycache__/
+*.pyc

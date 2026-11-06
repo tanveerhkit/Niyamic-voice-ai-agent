@@ -42,6 +42,7 @@ import { Badge, Button, Panel, Progress } from "@/components/ui";
 import { Waveform } from "@/components/live/waveform";
 import { Transcript } from "@/components/live/transcript";
 import { Logo } from "@/components/brand";
+import { LiveCall } from "./live-call";
 
 function CallControl({
   icon,
@@ -708,6 +709,19 @@ function CallScreen() {
   );
 }
 
+function CallRouter() {
+  const params = useParams<{ sessionId: string }>();
+  const searchParams = useSearchParams();
+  const agentId = searchParams.get("agent") ?? "ag_ayesha";
+  const agent = useAgent(agentId) ?? agentById(agentId) ?? seedAgents[0];
+
+  if (searchParams.get("mode") === "live") {
+    const sessionId = Array.isArray(params.sessionId) ? params.sessionId[0] : params.sessionId;
+    return <LiveCall sessionId={sessionId} agent={agent} />;
+  }
+  return <CallScreen />;
+}
+
 export default function CallPage() {
   return (
     <Suspense
@@ -717,7 +731,7 @@ export default function CallPage() {
         </div>
       }
     >
-      <CallScreen />
+      <CallRouter />
     </Suspense>
   );
 }
