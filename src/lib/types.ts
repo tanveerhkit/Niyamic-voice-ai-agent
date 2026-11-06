@@ -127,6 +127,8 @@ export interface SessionRecord {
   summary?: SessionSummary;
   transcript?: Turn[];
   handoffs?: Handoff[];
+  /** Recorded from a real LiveKit call rather than the scripted demo. */
+  live?: boolean;
 }
 
 export type LiveStatus = "connecting" | "ai_active" | "escalating" | "human_active" | "ended";

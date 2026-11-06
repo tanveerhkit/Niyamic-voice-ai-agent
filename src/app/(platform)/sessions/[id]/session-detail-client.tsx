@@ -37,14 +37,14 @@ function sentimentTone(sentiment: SessionRecord["sentiment"]) {
   return "neutral" as const;
 }
 
-function speakerMeta(role: Turn["role"]) {
-  if (role === "ai") return { label: "Ayesha", tone: "text-accent", bubble: "border-accent/10 bg-accent/[0.04]" };
+function speakerMeta(role: Turn["role"], agentName: string) {
+  if (role === "ai") return { label: agentName, tone: "text-accent", bubble: "border-accent/10 bg-accent/[0.04]" };
   if (role === "human") return { label: "Sara Malik", tone: "text-cyan", bubble: "border-cyan/15 bg-cyan/[0.05]" };
   if (role === "customer") return { label: "Customer", tone: "text-ink/70", bubble: "border-line bg-surface" };
   return { label: "System", tone: "text-muted", bubble: "" };
 }
 
-function TranscriptRow({ turn }: { turn: Turn }) {
+function TranscriptRow({ turn, agentName }: { turn: Turn; agentName: string }) {
   if (turn.role === "system") {
     return (
       <div className="flex items-center gap-2 py-1">
@@ -57,7 +57,7 @@ function TranscriptRow({ turn }: { turn: Turn }) {
     );
   }
 
-  const meta = speakerMeta(turn.role);
+  const meta = speakerMeta(turn.role, agentName);
   return (
     <div className="flex gap-2.5">
       <div className="w-9 shrink-0 pt-0.5 text-right font-mono text-[8.5px] text-muted-2">
@@ -175,7 +175,7 @@ export default function SessionDetailPage() {
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <p className="font-mono text-[9px] uppercase tracking-[0.16em] text-accent">
-                    AI summary
+                    Summary
                   </p>
                   <h2 className="mt-1.5 max-w-2xl font-display text-[25px] font-light leading-snug tracking-[-0.025em] text-ink">
                     {summary.headline}
@@ -275,7 +275,7 @@ export default function SessionDetailPage() {
             </div>
             <div className="scrollbar-thin max-h-[620px] space-y-3 overflow-y-auto p-4">
               {transcript.map((turn) => (
-                <TranscriptRow key={turn.id} turn={turn} />
+                <TranscriptRow key={turn.id} turn={turn} agentName={agent.name} />
               ))}
             </div>
           </Panel>
@@ -380,27 +380,31 @@ export default function SessionDetailPage() {
             )}
           </Panel>
 
-          <Panel className="p-4">
-            <SectionTitle
-              title="Recommendation"
-              action={
-                <Link
-                  href={`/agents/${agent.id}`}
-                  className="inline-flex items-center gap-1 text-[10px] text-muted hover:text-ink"
-                >
-                  Edit agent <ArrowUpRight className="h-2.5 w-2.5" />
-                </Link>
-              }
-            />
-            <p className="mt-2 text-[10.5px] leading-relaxed text-muted">{summary.recommendation}</p>
-          </Panel>
+          {summary.recommendation ? (
+            <Panel className="p-4">
+              <SectionTitle
+                title="Recommendation"
+                action={
+                  <Link
+                    href={`/agents/${agent.id}`}
+                    className="inline-flex items-center gap-1 text-[10px] text-muted hover:text-ink"
+                  >
+                    Edit agent <ArrowUpRight className="h-2.5 w-2.5" />
+                  </Link>
+                }
+              />
+              <p className="mt-2 text-[10.5px] leading-relaxed text-muted">{summary.recommendation}</p>
+            </Panel>
+          ) : null}
 
-          <Panel className="p-4">
-            <SectionTitle title="Recording" />
-            <div className="mt-3">
-              <RecordingPlayer durationSec={record.durationSec} />
-            </div>
-          </Panel>
+          {record.live ? null : (
+            <Panel className="p-4">
+              <SectionTitle title="Recording" />
+              <div className="mt-3">
+                <RecordingPlayer durationSec={record.durationSec} />
+              </div>
+            </Panel>
+          )}
         </div>
       </div>
     </div>

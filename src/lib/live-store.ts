@@ -126,6 +126,12 @@ export function listCompleted(): SessionRecord[] {
   return records;
 }
 
+export function saveCompleted(record: SessionRecord) {
+  if (!canUse()) return;
+  localStorage.setItem(COMPLETED_PREFIX + record.id, JSON.stringify(record));
+  notifyGlobal();
+}
+
 export function getCompleted(id: string): SessionRecord | null {
   if (!canUse()) return null;
   const raw = localStorage.getItem(COMPLETED_PREFIX + id);

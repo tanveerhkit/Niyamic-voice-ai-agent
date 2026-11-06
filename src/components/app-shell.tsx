@@ -7,6 +7,7 @@ import { AnimatePresence, motion } from "motion/react";
 import {
   BarChart3,
   Bot,
+  Database,
   Headphones,
   LayoutDashboard,
   Menu,
@@ -23,6 +24,7 @@ import { StartCallButton } from "./start-call";
 const navItems = [
   { href: "/", label: "Overview", icon: LayoutDashboard },
   { href: "/agents", label: "Agents", icon: Bot },
+  { href: "/data", label: "Data", icon: Database },
   { href: "/sessions", label: "Sessions", icon: PhoneCall },
   { href: "/supervisor", label: "Supervisor", icon: Headphones },
   { href: "/analytics", label: "Analytics", icon: BarChart3 },
@@ -39,6 +41,7 @@ function crumbFor(pathname: string) {
   if (pathname === "/") return "Overview";
   if (pathname.startsWith("/agents/")) return "Agents / Builder";
   if (pathname.startsWith("/agents")) return "Agents";
+  if (pathname.startsWith("/data")) return "Data";
   if (pathname.startsWith("/sessions/")) return "Sessions / Detail";
   if (pathname.startsWith("/sessions")) return "Sessions";
   if (pathname.startsWith("/supervisor")) return "Supervisor";
