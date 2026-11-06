@@ -79,7 +79,7 @@ function SessionCard({
         "rounded-xl border p-3 transition-colors",
         selected
           ? "border-accent/30 bg-accent/[0.04]"
-          : "border-line bg-white/[0.018] hover:border-line-strong hover:bg-white/[0.03]",
+          : "border-line bg-surface-2 hover:border-line-strong hover:bg-surface-2",
       )}
     >
       <button type="button" onClick={onSelect} className="w-full text-left">
@@ -209,7 +209,7 @@ export default function SupervisorPage() {
   return (
     <div className="mx-auto max-w-[1440px] px-4 py-6 lg:px-7 lg:py-8">
       <PageHeader
-        eyebrow="Human desk · live handoff"
+        eyebrow="04 — Human desk · live handoff"
         title={
           <>
             Take over without missing a <span className="font-serif italic text-cyan">beat</span>.
@@ -225,7 +225,7 @@ export default function SupervisorPage() {
                 "inline-flex h-10 items-center gap-2 rounded-xl border px-3 text-[12px] font-medium transition-colors",
                 available
                   ? "border-green/25 bg-green/10 text-green"
-                  : "border-line bg-white/[0.03] text-muted",
+                  : "border-line bg-surface-2 text-muted",
               )}
             >
               <span className={cn("h-1.5 w-1.5 rounded-full", available ? "bg-green" : "bg-muted-2")} />
@@ -438,7 +438,7 @@ export default function SupervisorPage() {
                               key={turn.text}
                               type="button"
                               onClick={() => send(turn.text)}
-                              className="max-w-full truncate rounded-full border border-line bg-white/[0.025] px-2.5 py-1 text-[9.5px] text-muted transition-colors hover:border-line-strong hover:text-ink"
+                              className="max-w-full truncate rounded-full border border-line bg-surface px-2.5 py-1 text-[9.5px] text-muted transition-colors hover:border-line-strong hover:text-ink"
                             >
                               {turn.text.slice(0, 55)}...
                             </button>
@@ -467,7 +467,7 @@ export default function SupervisorPage() {
                         </p>
                       </>
                     ) : (
-                      <div className="flex items-center justify-between rounded-lg border border-line bg-white/[0.02] px-3 py-2.5">
+                      <div className="flex items-center justify-between rounded-lg border border-line bg-surface-2/50 px-3 py-2.5">
                         <p className="text-[10px] text-muted">
                           {selected.status === "escalating"
                             ? "Accept the handoff to take control."
@@ -488,7 +488,7 @@ export default function SupervisorPage() {
                 </div>
 
                 <aside className="p-3">
-                  <div className="rounded-xl border border-line bg-white/[0.02] p-3">
+                  <div className="rounded-xl border border-line bg-surface-2/50 p-3">
                     <div className="flex items-center gap-1.5">
                       <Sparkles className="h-3 w-3 text-accent" />
                       <p className="font-mono text-[8.5px] uppercase tracking-[0.12em] text-accent">
@@ -526,7 +526,7 @@ export default function SupervisorPage() {
                     </p>
                   </div>
 
-                  <div className="mt-2 rounded-xl border border-line bg-white/[0.02] p-3">
+                  <div className="mt-2 rounded-xl border border-line bg-surface-2/50 p-3">
                     <p className="font-mono text-[8.5px] uppercase tracking-[0.12em] text-muted-2">
                       Suggested reply
                     </p>
@@ -551,7 +551,7 @@ export default function SupervisorPage() {
                     </button>
                   </div>
 
-                  <div className="mt-2 rounded-xl border border-line bg-white/[0.02] p-3">
+                  <div className="mt-2 rounded-xl border border-line bg-surface-2/50 p-3">
                     <p className="font-mono text-[8.5px] uppercase tracking-[0.12em] text-muted-2">
                       Handoff record
                     </p>
@@ -578,7 +578,7 @@ export default function SupervisorPage() {
               </div>
             </Panel>
 
-            <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-line bg-white/[0.015] px-4 py-2.5">
+            <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-line bg-surface-2 px-4 py-2.5">
               <div className="flex items-center gap-2 text-[9.5px] text-muted-2">
                 <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-green" />
                 Customer is hearing {selected.control === "human" ? "Sara" : "Ayesha"} ·{" "}
@@ -595,10 +595,10 @@ export default function SupervisorPage() {
         ) : (
           <Panel className="flex min-h-[540px] items-center justify-center">
             <div className="max-w-md px-6 text-center">
-              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl border border-line bg-white/[0.03] text-muted">
+              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl border border-line bg-surface-2 text-muted">
                 <Headphones className="h-5 w-5" />
               </div>
-              <h2 className="mt-4 text-[16px] font-medium text-ink">The desk is quiet.</h2>
+              <h2 className="mt-4 font-display text-[22px] font-normal tracking-[-0.02em] text-ink">The desk is quiet.</h2>
               <p className="mt-1.5 text-[11.5px] leading-relaxed text-muted">
                 Start a customer call in a new window. When the AI hits a policy edge or the customer
                 asks for a person, the handoff appears here with the full conversation attached.
@@ -619,7 +619,7 @@ export default function SupervisorPage() {
         )}
       </div>
 
-      <div className="mt-4 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-line bg-white/[0.015] px-4 py-2.5">
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-line bg-surface-2 px-4 py-2.5">
         <p className="flex items-center gap-2 text-[9.5px] text-muted-2">
           <Zap className="h-3 w-3 text-accent/60" />
           Handoff keeps the LiveKit room alive. Context is transferred as a structured event, not a

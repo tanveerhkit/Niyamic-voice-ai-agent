@@ -14,24 +14,22 @@ type ButtonVariant = "primary" | "secondary" | "ghost" | "danger" | "outline" | 
 type ButtonSize = "sm" | "md" | "lg" | "icon" | "icon-sm";
 
 const buttonVariants: Record<ButtonVariant, string> = {
-  primary:
-    "bg-accent text-accent-ink hover:bg-[#d8ff8a] border border-accent/40 shadow-[0_8px_30px_-12px_rgba(201,247,111,0.55)]",
+  primary: "bg-accent text-accent-ink border border-accent hover:bg-[#3a332f] hover:border-[#3a332f]",
   secondary:
-    "bg-white/[0.045] text-ink border border-line hover:bg-white/[0.075] hover:border-line-strong",
-  ghost: "text-muted border border-transparent hover:text-ink hover:bg-white/[0.055]",
-  danger:
-    "bg-red/10 text-red border border-red/25 hover:bg-red/15 hover:border-red/40",
+    "bg-surface text-ink border border-line hover:bg-surface-2 hover:border-line-strong",
+  ghost: "text-muted border border-transparent hover:text-ink hover:bg-surface-2",
+  danger: "bg-red/[0.06] text-red border border-red/30 hover:bg-red/10 hover:border-red/50",
   outline:
-    "bg-transparent text-ink border border-line hover:border-line-strong hover:bg-white/[0.035]",
+    "bg-transparent text-ink border border-line-strong hover:border-ink hover:bg-ink hover:text-accent-ink",
   subtle: "bg-surface-2 text-ink border border-line hover:bg-surface-3",
 };
 
 const buttonSizes: Record<ButtonSize, string> = {
-  sm: "h-8 px-3 text-[12.5px] rounded-lg gap-1.5",
-  md: "h-10 px-4 text-[13.5px] rounded-xl gap-2",
-  lg: "h-12 px-6 text-sm rounded-xl gap-2",
-  icon: "h-10 w-10 rounded-full",
-  "icon-sm": "h-8 w-8 rounded-lg",
+  sm: "h-8 px-3 text-[9.5px] gap-1.5",
+  md: "h-9 px-4 text-[10px] gap-2",
+  lg: "h-11 px-6 text-[10.5px] gap-2",
+  icon: "h-9 w-9",
+  "icon-sm": "h-8 w-8",
 };
 
 export function buttonStyles(
@@ -40,7 +38,7 @@ export function buttonStyles(
   className?: string,
 ) {
   return cn(
-    "inline-flex select-none items-center justify-center font-medium transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-bg disabled:pointer-events-none disabled:opacity-45 whitespace-nowrap",
+    "inline-flex select-none items-center justify-center rounded-none font-mono font-medium uppercase tracking-[0.14em] transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink/20 focus-visible:ring-offset-2 focus-visible:ring-offset-bg disabled:pointer-events-none disabled:opacity-40 whitespace-nowrap",
     buttonVariants[variant],
     buttonSizes[size],
     className,
@@ -72,15 +70,15 @@ type BadgeTone =
   | "human";
 
 const badgeTones: Record<BadgeTone, string> = {
-  neutral: "bg-white/[0.055] text-muted border-line",
-  accent: "bg-accent/10 text-accent border-accent/25",
-  green: "bg-green/10 text-green border-green/25",
-  amber: "bg-amber/10 text-amber border-amber/25",
-  red: "bg-red/10 text-red border-red/25",
-  cyan: "bg-cyan/10 text-cyan border-cyan/25",
-  violet: "bg-violet/10 text-violet border-violet/25",
-  outline: "bg-transparent text-muted border-line-strong",
-  human: "bg-cyan/10 text-cyan border-cyan/25",
+  neutral: "bg-surface-2 text-muted border-line",
+  accent: "bg-accent text-accent-ink border-accent",
+  green: "bg-green/[0.06] text-green border-green/30",
+  amber: "bg-amber/[0.07] text-amber border-amber/30",
+  red: "bg-red/[0.06] text-red border-red/30",
+  cyan: "bg-cyan/[0.06] text-cyan border-cyan/30",
+  violet: "bg-violet/[0.06] text-violet border-violet/30",
+  outline: "bg-transparent text-ink/65 border-line-strong",
+  human: "bg-cyan/[0.06] text-cyan border-cyan/30",
 };
 
 export interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
@@ -92,13 +90,13 @@ export function Badge({ tone = "neutral", dot, className, children, ...props }: 
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[10.5px] font-medium uppercase tracking-[0.08em]",
+        "inline-flex items-center gap-1.5 rounded-none border px-2 py-1 font-mono text-[9px] font-medium uppercase leading-none tracking-[0.13em]",
         badgeTones[tone],
         className,
       )}
       {...props}
     >
-      {dot ? <span className="h-1.5 w-1.5 rounded-full bg-current" /> : null}
+      {dot ? <span className="h-1 w-1 rounded-full bg-current" /> : null}
       {children}
     </span>
   );
@@ -114,13 +112,7 @@ export function Panel({ className, ...props }: React.HTMLAttributes<HTMLDivEleme
 
 export function Eyebrow({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
   return (
-    <div
-      className={cn(
-        "font-mono text-[10.5px] uppercase tracking-[0.18em] text-muted-2",
-        className,
-      )}
-      {...props}
-    />
+    <div className={cn("eyebrow", className)} {...props} />
   );
 }
 
@@ -138,8 +130,10 @@ export function SectionTitle({
   return (
     <div className={cn("flex items-start justify-between gap-4", className)}>
       <div>
-        <h2 className="text-[15px] font-medium tracking-[-0.01em] text-ink">{title}</h2>
-        {description ? <p className="mt-0.5 text-[12.5px] text-muted">{description}</p> : null}
+        <h2 className="font-display text-[17px] font-normal leading-snug tracking-[-0.02em] text-ink">
+          {title}
+        </h2>
+        {description ? <p className="mt-1 text-[12px] leading-relaxed text-muted">{description}</p> : null}
       </div>
       {action}
     </div>
@@ -151,7 +145,7 @@ export function SectionTitle({
 /* ------------------------------------------------------------------ */
 
 const fieldBase =
-  "w-full rounded-xl border border-line bg-white/[0.028] px-3.5 text-[13.5px] text-ink placeholder:text-muted-2 transition-colors focus:border-accent/45 focus:bg-white/[0.045] focus:outline-none focus:ring-2 focus:ring-accent/10 disabled:opacity-50";
+  "w-full rounded-none border border-line bg-white px-3.5 text-[13px] text-ink placeholder:text-muted-2 transition-colors focus:border-ink focus:outline-none focus:ring-0 disabled:opacity-50";
 
 export function Input({ className, ...props }: React.InputHTMLAttributes<HTMLInputElement>) {
   return <input className={cn(fieldBase, "h-10", className)} {...props} />;
@@ -202,11 +196,11 @@ export function Label({
   htmlFor?: string;
 }) {
   return (
-    <div className={cn("mb-1.5 flex items-baseline justify-between gap-3", className)}>
-      <label htmlFor={htmlFor} className="text-[12px] font-medium text-ink/90">
+    <div className={cn("mb-2 flex items-baseline justify-between gap-3", className)}>
+      <label htmlFor={htmlFor} className="font-mono text-[9px] font-medium uppercase tracking-[0.14em] text-muted">
         {children}
       </label>
-      {hint ? <span className="text-[10.5px] text-muted-2">{hint}</span> : null}
+      {hint ? <span className="font-mono text-[9px] text-muted-2">{hint}</span> : null}
     </div>
   );
 }
@@ -258,14 +252,14 @@ export function Switch({
         disabled={disabled}
         onClick={() => onChange(!checked)}
         className={cn(
-          "relative mt-0.5 h-[22px] w-[38px] shrink-0 rounded-full border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 disabled:opacity-40",
-          checked ? "border-accent/40 bg-accent/90" : "border-line-strong bg-white/[0.06]",
+          "relative mt-0.5 h-[20px] w-[36px] shrink-0 rounded-full border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink/20 disabled:opacity-40",
+          checked ? "border-accent bg-accent" : "border-line-strong bg-surface-3",
         )}
       >
         <span
           className={cn(
-            "absolute top-1/2 h-[16px] w-[16px] -translate-y-1/2 rounded-full transition-all",
-            checked ? "left-[18px] bg-accent-ink" : "left-[3px] bg-muted",
+            "absolute top-1/2 h-[14px] w-[14px] -translate-y-1/2 rounded-full transition-all",
+            checked ? "left-[18px] bg-accent-ink" : "left-[2px] bg-white",
           )}
         />
       </button>
@@ -293,8 +287,8 @@ export function Range({
   return (
     <div>
       <div className="mb-2 flex items-center justify-between">
-        <span className="text-[12px] font-medium text-ink/90">{label}</span>
-        <span className="font-mono text-[11px] text-accent">{display}</span>
+        <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-muted">{label}</span>
+        <span className="font-mono text-[10px] text-ink">{display}</span>
       </div>
       <input
         type="range"
@@ -325,17 +319,17 @@ export function Tabs<T extends string>({
   className?: string;
 }) {
   return (
-    <div className={cn("flex flex-wrap items-center gap-1 rounded-xl border border-line bg-white/[0.025] p-1", className)}>
+    <div className={cn("flex flex-wrap items-center gap-0 border border-line bg-surface p-1", className)}>
       {items.map((item) => (
         <button
           key={item.id}
           type="button"
           onClick={() => onChange(item.id)}
           className={cn(
-            "inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[12.5px] font-medium transition-colors",
+            "inline-flex items-center gap-1.5 rounded-none px-3 py-1.5 font-mono text-[9.5px] font-medium uppercase tracking-[0.12em] transition-colors",
             value === item.id
-              ? "bg-white/[0.09] text-ink shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]"
-              : "text-muted hover:bg-white/[0.04] hover:text-ink",
+              ? "bg-accent text-accent-ink"
+              : "text-muted hover:bg-surface-2 hover:text-ink",
           )}
         >
           {item.icon}
@@ -368,9 +362,9 @@ export function Progress({
     violet: "bg-violet",
   };
   return (
-    <div className={cn("h-1.5 w-full overflow-hidden rounded-full bg-white/[0.07]", className)}>
+    <div className={cn("h-[3px] w-full overflow-hidden rounded-none bg-ink/10", className)}>
       <div
-        className={cn("h-full rounded-full transition-[width] duration-500", tones[tone])}
+        className={cn("h-full rounded-none transition-[width] duration-500", tones[tone])}
         style={{ width: `${Math.min(100, Math.max(0, value))}%` }}
       />
     </div>
@@ -425,7 +419,7 @@ export function Modal({
         animate={{ opacity: 1 }}
         transition={{ duration: 0.18 }}
         onClick={onClose}
-        className="absolute inset-0 bg-black/70 backdrop-blur-md"
+        className="absolute inset-0 bg-[#221e1c]/35 backdrop-blur-sm"
       />
       <motion.div
         initial={{ opacity: 0, y: 14, scale: 0.985 }}
@@ -438,20 +432,21 @@ export function Modal({
       >
         <div className="flex items-start justify-between gap-4 border-b border-line px-5 py-4">
           <div>
-            <h2 className="text-[15px] font-medium text-ink">{title}</h2>
-            {description ? <p className="mt-1 text-[12.5px] leading-relaxed text-muted">{description}</p> : null}
+            <p className="eyebrow mb-1.5">Niyamic Echo</p>
+            <h2 className="font-display text-[22px] font-normal leading-tight tracking-[-0.02em] text-ink">{title}</h2>
+            {description ? <p className="mt-1.5 text-[12px] leading-relaxed text-muted">{description}</p> : null}
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg p-1 text-muted transition-colors hover:bg-white/[0.06] hover:text-ink"
+            className="rounded-none p-1 text-muted transition-colors hover:bg-surface-2 hover:text-ink"
             aria-label="Close"
           >
             <X className="h-4 w-4" />
           </button>
         </div>
         {children ? <div className="px-5 py-4">{children}</div> : null}
-        {footer ? <div className="flex items-center justify-end gap-2 border-t border-line bg-black/20 px-5 py-3.5">{footer}</div> : null}
+        {footer ? <div className="flex items-center justify-end gap-2 border-t border-line bg-surface-2 px-5 py-3.5">{footer}</div> : null}
       </motion.div>
     </div>,
     document.body,
@@ -476,12 +471,12 @@ export function EmptyState({
   return (
     <div className="flex flex-col items-center justify-center px-6 py-14 text-center">
       {icon ? (
-        <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl border border-line bg-white/[0.04] text-muted">
+        <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-none border border-line bg-surface-2 text-muted">
           {icon}
         </div>
       ) : null}
-      <h3 className="text-sm font-medium text-ink">{title}</h3>
-      <p className="mt-1.5 max-w-sm text-[12.5px] leading-relaxed text-muted">{description}</p>
+      <h3 className="font-display text-[18px] font-normal tracking-[-0.02em] text-ink">{title}</h3>
+      <p className="mt-1.5 max-w-sm text-[12px] leading-relaxed text-muted">{description}</p>
       {action ? <div className="mt-5">{action}</div> : null}
     </div>
   );
@@ -489,7 +484,7 @@ export function EmptyState({
 
 export function Kbd({ children }: { children: React.ReactNode }) {
   return (
-    <kbd className="rounded border border-line bg-white/[0.04] px-1.5 py-0.5 font-mono text-[10px] text-muted">
+    <kbd className="rounded-none border border-line bg-surface-2 px-1.5 py-0.5 font-mono text-[9px] text-muted">
       {children}
     </kbd>
   );

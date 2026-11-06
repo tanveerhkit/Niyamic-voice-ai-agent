@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Niyamic Echo — Project Overview & Demo Verification</title>
+  <style>
+    @page {
+      size: A4 portrait;
+      margin: 0;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background-color: #090b0e;
+      color: #e6edf3;
+      width: 210mm;
+      height: 297mm;
+      max-height: 297mm;
+      padding: 24mm 20mm;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      overflow: hidden;
+      line-height: 1.45;
+    }
+
+    /* Header */
+    .header {
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      padding-bottom: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .logo-badge {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      background: #c9f76f;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #0a0f02;
+      box-shadow: 0 0 20px rgba(201, 247, 111, 0.4);
+    }
+    .brand-title {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      color: #ffffff;
+    }
+    .brand-title span {
+      color: #c9f76f;
+    }
+    .brand-tagline {
+      font-size: 11px;
+      color: #8b949e;
+      font-weight: 500;
+      margin-top: 2px;
+    }
+    .live-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      background: rgba(201, 247, 111, 0.1);
+      border: 1px solid rgba(201, 247, 111, 0.35);
+      border-radius: 999px;
+      padding: 5px 12px;
+      text-decoration: none;
+      color: #c9f76f;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .pulse-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #c9f76f;
+    }
+
+    /* Section Typography */
+    .section-title {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #8b949e;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .section-title::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    /* Description Cards */
+    .overview-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .card {
+      background: rgba(255, 255, 255, 0.025);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      border-radius: 8px;
+      padding: 12px 14px;
+    }
+    .card h4 {
+      font-size: 12.5px;
+      font-weight: 600;
+      color: #ffffff;
+      margin-bottom: 4px;
+    }
+    .card p {
+      font-size: 11px;
+      color: #9da7b3;
+      line-height: 1.4;
+    }
+
+    /* Verification Runbook */
+    .runbook-section {
+      margin-bottom: 16px;
+    }
+    .steps-container {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .step-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 8px;
+      padding: 10px 13px;
+    }
+    .step-num {
+      width: 22px;
+      height: 22px;
+      border-radius: 6px;
+      background: rgba(201, 247, 111, 0.15);
+      color: #c9f76f;
+      border: 1px solid rgba(201, 247, 111, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 700;
+      font-family: monospace;
+      shrink: 0;
+      margin-top: 1px;
+    }
+    .step-body {
+      flex: 1;
+    }
+    .step-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: #f0f6fc;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .step-badge {
+      font-size: 9.5px;
+      font-family: monospace;
+      padding: 1px 6px;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.06);
+      color: #8b949e;
+    }
+    .step-desc {
+      font-size: 10.8px;
+      color: #8b949e;
+      margin-top: 2px;
+      line-height: 1.4;
+    }
+    .step-desc strong {
+      color: #c9d1d9;
+    }
+
+    /* Live Keys Production Callout */
+    .keys-callout {
+      background: linear-gradient(135deg, rgba(201, 247, 111, 0.05), rgba(0, 209, 255, 0.04));
+      border: 1px solid rgba(201, 247, 111, 0.25);
+      border-radius: 8px;
+      padding: 12px 14px;
+      margin-bottom: 12px;
+    }
+    .keys-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+    .keys-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: #c9f76f;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .keys-text {
+      font-size: 10.8px;
+      color: #c9d1d9;
+      line-height: 1.45;
+    }
+    .keys-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+      margin-top: 8px;
+    }
+    .key-pill {
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 5px;
+      padding: 4px 7px;
+      font-size: 9.5px;
+      font-family: monospace;
+      color: #8b949e;
+    }
+    .key-pill span {
+      display: block;
+      color: #ffffff;
+      font-weight: 600;
+      font-size: 10px;
+      margin-bottom: 1px;
+    }
+
+    /* Footer */
+    .footer {
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      padding-top: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 10px;
+      color: #6e7681;
+    }
+    .footer-link {
+      color: #c9f76f;
+      text-decoration: none;
+      font-weight: 600;
+      font-family: monospace;
+      font-size: 10.5px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="header">
+    <div class="brand-group">
+      <div class="logo-badge">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 12h2.4l1.7-6.2L10.4 18l2.5-9.4 1.7 6.2h2.2l1.5-3.8H21" />
+        </svg>
+      </div>
+      <div>
+        <div class="brand-title">Niyamic Echo<span>.</span></div>
+        <div class="brand-tagline">Autonomous Enterprise Voice Agents with Warm Human Handoff</div>
+      </div>
+    </div>
+    <a href="https://niyamic-echo.netlify.app/" class="live-badge" target="_blank">
+      <span class="pulse-dot"></span>
+      Live Demo Web App
+    </a>
+  </div>
+
+  <!-- Project Overview -->
+  <div>
+    <div class="section-title">System Architecture & Capabilities</div>
+    <div class="overview-grid">
+      <div class="card">
+        <h4>Autonomous Front-Line AI Voice Agents</h4>
+        <p>Pre-configured multilingual agents (English, Urdu, Hindi) handling order tracking, billing exceptions, duplicate charges, and plan onboarding with deterministic policy-edge detection.</p>
+      </div>
+      <div class="card">
+        <h4>Human-in-the-Loop Supervisor Desk</h4>
+        <p>Live supervisor workstation with cross-tab BroadcastChannel state sync, real-time risk scores, contextual transcript injection, single-click human takeover, and loop-return to AI.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Verification & Testing Guide -->
+  <div class="runbook-section">
+    <div class="section-title">How to Verify & Test the Live Demo (2-Tab Walkthrough)</div>
+    <div class="steps-container">
+
+      <div class="step-item">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <div class="step-title">
+            <span>Open Dual-Tab Evaluation Layout</span>
+            <span class="step-badge">Tab A & Tab B</span>
+          </div>
+          <div class="step-desc">
+            Open <strong>https://niyamic-echo.netlify.app/</strong> in Tab B, and open <strong>/supervisor</strong> in Tab A side-by-side in the same browser window profile.
+          </div>
+        </div>
+      </div>
+
+      <div class="step-item">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <div class="step-title">
+            <span>Start Live Call Simulation</span>
+            <span class="step-badge">Tab B · /call/...</span>
+          </div>
+          <div class="step-desc">
+            Click <strong>"Start live call"</strong> (top right). Agent Ayesha initiates greeting and confirms the customer inquiry in real-time with waveform and streaming transcript.
+          </div>
+        </div>
+      </div>
+
+      <div class="step-item">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <div class="step-title">
+            <span>Trigger Escalation to Human</span>
+            <span class="step-badge">Demo Controls</span>
+          </div>
+          <div class="step-desc">
+            Click <strong>Demo controls → Skip to escalation</strong>. The conversation fast-forwards to duplicate charge order 4821. Confidence drops to <strong>0.58</strong>, instantly populating the supervisor queue in Tab A.
+          </div>
+        </div>
+      </div>
+
+      <div class="step-item">
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <div class="step-title">
+            <span>Execute Warm Handoff & Return</span>
+            <span class="step-badge">Tab A · Supervisor Desk</span>
+          </div>
+          <div class="step-desc">
+            In Tab A, click <strong>"Play handoff"</strong>. Sara Malik (human) joins the room with full context. After resolving the refund, control returns to Ayesha to close the call without customer repetition.
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Live Keys Production Notation -->
+  <div class="keys-callout">
+    <div class="keys-header">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#c9f76f" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+        <rect width="18" height="18" x="3" y="3" rx="2"/><path d="m9 12 2 2 4-4"/>
+      </svg>
+      <div class="keys-title">Production Activation (Live API Keys Ready)</div>
+    </div>
+    <div class="keys-text">
+      This web demo executes in a browser-local deterministic mock engine for instant verification without third-party API dependencies. <strong>The codebase is already pre-architected to become fully live by simply populating your API credentials in <code>.env</code>:</strong>
+    </div>
+    <div class="keys-grid">
+      <div class="key-pill">
+        <span>LiveKit WebRTC</span>
+        LIVEKIT_URL & KEY
+      </div>
+      <div class="key-pill">
+        <span>Azure Speech STT/TTS</span>
+        AZURE_SPEECH_KEY
+      </div>
+      <div class="key-pill">
+        <span>Azure OpenAI LLM</span>
+        AZURE_OPENAI_KEY
+      </div>
+      <div class="key-pill">
+        <span>CRM / SIP Trunk</span>
+        CRM_TOKEN & SIP_URI
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <div>
+      Live Deployment: <a href="https://niyamic-echo.netlify.app/" class="footer-link">https://niyamic-echo.netlify.app/</a>
+    </div>
+    <div>Next.js 16 · React 19 · TypeScript · Tailwind CSS 4</div>
+  </div>
+
+</body>
+</html>

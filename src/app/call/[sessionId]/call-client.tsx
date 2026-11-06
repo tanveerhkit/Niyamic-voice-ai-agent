@@ -69,17 +69,17 @@ function CallControl({
     >
       <span
         className={cn(
-          "flex h-11 w-11 items-center justify-center rounded-full border transition-all",
+          "flex h-11 w-11 items-center justify-center rounded-none border transition-all",
           danger
             ? "border-red/30 bg-red/12 text-red hover:bg-red/20"
             : active
               ? "border-accent/30 bg-accent/12 text-accent"
-              : "border-line bg-white/[0.035] text-muted hover:border-line-strong hover:bg-white/[0.06] hover:text-ink",
+              : "border-line bg-surface-2 text-muted hover:border-line-strong hover:bg-surface-3 hover:text-ink",
         )}
       >
         {icon}
       </span>
-      <span className="text-[9.5px] text-muted-2 group-hover:text-muted">{label}</span>
+      <span className="font-mono text-[8px] uppercase tracking-[0.12em] text-muted-2 group-hover:text-muted">{label}</span>
     </button>
   );
 }
@@ -237,7 +237,7 @@ function CallScreen() {
               <div className="relative">
                 <AgentAvatar name={humanActive ? "Sara Malik" : agent.name} color={humanActive ? "cyan" : agent.color} size="lg" status="active" />
                 {humanActive ? (
-                  <span className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full border-2 border-bg bg-cyan text-[8px] font-bold text-[#041619]">
+                  <span className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full border-2 border-bg bg-cyan text-[8px] font-bold text-ink">
                     AI
                   </span>
                 ) : null}
@@ -258,7 +258,7 @@ function CallScreen() {
               </div>
             </div>
             {humanActive ? (
-              <div className="mt-3 rounded-lg border border-cyan/20 bg-cyan/[0.05] px-2.5 py-2">
+              <div className="mt-3 rounded-none border border-cyan/20 bg-cyan/[0.05] px-2.5 py-2">
                 <p className="text-[10px] leading-relaxed text-cyan/90">
                   Ayesha is assisting silently with policy checks. Full transcript is shared.
                 </p>
@@ -302,7 +302,7 @@ function CallScreen() {
                   {detectedLanguages.map((language) => (
                     <span
                       key={language}
-                      className="rounded border border-line bg-white/[0.03] px-1.5 py-0.5 font-mono text-[8.5px] text-muted"
+                      className="rounded border border-line bg-surface-2 px-1.5 py-0.5 font-mono text-[8.5px] text-muted"
                       title={LANGUAGE_NATIVE[language]}
                     >
                       {LANGUAGE_SHORT[language]}
@@ -356,7 +356,7 @@ function CallScreen() {
                 </p>
               ) : (
                 session.toolCalls.map((tool) => (
-                  <div key={tool.id} className="rounded-lg border border-line bg-white/[0.025] px-2.5 py-2">
+                  <div key={tool.id} className="rounded-none border border-line bg-surface px-2.5 py-2">
                     <div className="flex items-center gap-1.5">
                       {tool.status === "running" ? (
                         <Loader2 className="h-2.5 w-2.5 animate-spin text-cyan" />
@@ -417,28 +417,29 @@ function CallScreen() {
             </div>
 
             <div className="relative flex flex-1 flex-col items-center justify-center px-4 py-8">
-              <div className="relative flex items-center justify-center">
+              <div className="relative flex h-[300px] w-[300px] items-center justify-center sm:h-[340px] sm:w-[340px]">
+                <Waveform
+                  state={
+                    humanActive
+                      ? "human"
+                      : session.agentState === "speaking"
+                        ? "speaking"
+                        : session.agentState
+                  }
+                  active={!ended && !session.paused}
+                  className="absolute inset-0"
+                />
                 <div
                   className={cn(
-                    "absolute h-44 w-44 rounded-full blur-3xl transition-colors duration-700",
+                    "absolute h-40 w-40 rounded-full blur-3xl transition-colors duration-700",
                     humanActive
                       ? "bg-cyan/15"
                       : session.agentState === "speaking"
-                        ? "bg-accent/15"
-                        : "bg-white/[0.035]",
+                        ? "bg-accent/10"
+                        : "bg-surface-2/80",
                   )}
                 />
-                <div
-                  className={cn(
-                    "absolute h-32 w-32 rounded-full border transition-colors duration-700",
-                    humanActive
-                      ? "border-cyan/20"
-                      : session.agentState === "speaking"
-                        ? "border-accent/25"
-                        : "border-line",
-                  )}
-                />
-                <div className="breathe absolute h-28 w-28 rounded-full bg-white/[0.02]" />
+                <div className="breathe absolute h-24 w-24 rounded-full bg-surface-2/70" />
                 <div className="relative">
                   <AgentAvatar
                     name={humanActive ? "Sara Malik" : agent.name}
@@ -446,7 +447,7 @@ function CallScreen() {
                     size="xl"
                   />
                   {humanActive ? (
-                    <span className="absolute -bottom-2 -right-2 flex h-8 w-8 items-center justify-center rounded-full border-2 border-[#0c0e11] bg-surface-2">
+                    <span className="absolute -bottom-2 -right-2 flex h-8 w-8 items-center justify-center rounded-full border-2 border-bg bg-surface-2">
                       <AgentAvatar name={agent.name} color={agent.color} size="xs" />
                     </span>
                   ) : null}
@@ -454,7 +455,7 @@ function CallScreen() {
               </div>
 
               <div className="mt-5 text-center">
-                <h1 className="text-[17px] font-medium tracking-[-0.02em] text-ink">
+                <h1 className="font-display text-[24px] font-light tracking-[-0.02em] text-ink">
                   {humanActive ? "Sara Malik" : agent.name}
                 </h1>
                 <p className="mt-0.5 text-[10.5px] text-muted">
@@ -463,7 +464,7 @@ function CallScreen() {
                 <div className="mt-3 flex items-center justify-center gap-2">
                   <span
                     className={cn(
-                      "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-medium",
+                      "inline-flex items-center gap-1.5 rounded-none border px-2.5 py-1 font-mono text-[8.5px] uppercase tracking-[0.12em]",
                       humanActive
                         ? "border-cyan/25 bg-cyan/[0.07] text-cyan"
                         : escalating
@@ -476,20 +477,6 @@ function CallScreen() {
                   </span>
                   {session.paused ? <Badge tone="amber">Paused</Badge> : null}
                 </div>
-              </div>
-
-              <div className="mt-6 w-full max-w-[560px]">
-                <Waveform
-                  state={
-                    humanActive
-                      ? "human"
-                      : session.agentState === "speaking"
-                        ? "speaking"
-                        : session.agentState
-                  }
-                  active={!ended && !session.paused}
-                  height={86}
-                />
               </div>
 
               <div className="mt-3 flex min-h-8 items-center justify-center gap-2 text-center">
@@ -509,7 +496,7 @@ function CallScreen() {
               ) : null}
             </div>
 
-            <div className="relative border-t border-line bg-black/20 px-4 py-4">
+            <div className="relative border-t border-line bg-surface-2 px-4 py-4">
               <div className="flex items-center justify-center gap-5 sm:gap-8">
                 <CallControl
                   icon={session.micMuted ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
@@ -547,7 +534,7 @@ function CallScreen() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  className="absolute inset-0 z-20 flex items-center justify-center bg-[#070809]/80 p-4 backdrop-blur-md"
+                  className="absolute inset-0 z-20 flex items-center justify-center bg-[#f8f7f6]/85 p-4 backdrop-blur-md"
                 >
                   <motion.div
                     initial={{ opacity: 0, y: 16, scale: 0.98 }}
@@ -558,14 +545,14 @@ function CallScreen() {
                     <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-amber/25 bg-amber/10">
                       <Loader2 className="h-5 w-5 animate-spin text-amber" />
                     </div>
-                    <h2 className="mt-4 text-[16px] font-medium text-ink">
+                    <h2 className="mt-4 font-display text-[22px] font-light tracking-[-0.02em] text-ink">
                       Connecting you to a specialist
                     </h2>
                     <p className="mt-1.5 text-[11.5px] leading-relaxed text-muted">
                       Ayesha is sharing the full conversation with Sara. You won&apos;t need to repeat
                       anything.
                     </p>
-                    <div className="mt-4 flex items-center justify-center gap-3 rounded-xl border border-line bg-white/[0.02] px-3 py-2.5">
+                    <div className="mt-4 flex items-center justify-center gap-3 rounded-none border border-line bg-surface-2/50 px-3 py-2.5">
                       <AgentAvatar name={agent.name} color={agent.color} size="sm" />
                       <div className="flex items-center gap-1">
                         {[0, 1, 2].map((index) => (
@@ -737,7 +724,7 @@ function CallScreen() {
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-[#070809]/85 p-4 backdrop-blur-xl"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-[#f8f7f6]/90 p-4 backdrop-blur-xl"
           >
             <motion.div
               initial={{ opacity: 0, y: 16, scale: 0.98 }}
@@ -748,7 +735,7 @@ function CallScreen() {
                 <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-accent/25 bg-accent/10">
                   <CheckCircle2 className="h-5 w-5 text-accent" />
                 </div>
-                <h2 className="mt-3 text-[20px] font-medium tracking-[-0.02em] text-ink">Call resolved</h2>
+                <h2 className="mt-3 font-display text-[28px] font-light tracking-[-0.02em] text-ink">Call resolved</h2>
                 <p className="mt-1 text-[11.5px] text-muted">
                   Summary, transcript, and handoff record are ready.
                 </p>

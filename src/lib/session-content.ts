@@ -108,10 +108,10 @@ export function fallbackTranscript(session: SessionRecord): Turn[] {
   const lang = session.language;
   const open =
     lang === "ur"
-      ? "Niyamic-Voice-AI-Agent support se baat kar rahi hoon, main Ayesha. Kaise madad kar sakti hoon?"
+      ? "Niyamic Echo support se baat kar rahi hoon, main Ayesha. Kaise madad kar sakti hoon?"
       : lang === "hi"
-        ? "Niyamic-Voice-AI-Agent support, main Ayesha. Main aap ki kaise madad kar sakti hoon?"
-        : "Thanks for calling Niyamic-Voice-AI-Agent support. This is Ayesha. How can I help you today?";
+        ? "Niyamic Echo support, main Ayesha. Main aap ki kaise madad kar sakti hoon?"
+        : "Thanks for calling Niyamic Echo support. This is Ayesha. How can I help you today?";
 
   const turns: Turn[] = [
     { id: `${session.id}_t1`, role: "ai", text: open, at: 0, confidence: 0.96 },
@@ -203,7 +203,7 @@ export function fallbackTranscript(session: SessionRecord): Turn[] {
       {
         id: `${session.id}_t7`,
         role: "ai",
-        text: "Thanks for calling Niyamic-Voice-AI-Agent. Have a great day.",
+        text: "Thanks for calling Niyamic Echo. Have a great day.",
         at: 50,
         confidence: 0.98,
       },
@@ -232,7 +232,7 @@ export function fallbackSummary(session: SessionRecord): SessionSummary {
     resolution: isAbandoned
       ? "Customer disconnected · follow-up recommended"
       : isTransferred
-        ? `Resolved by ${session.transferReason ?? "human specialist"}`
+        ? "Resolved after transfer"
         : "Resolved by AI",
     bullets: isAbandoned
       ? [

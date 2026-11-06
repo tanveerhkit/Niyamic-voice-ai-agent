@@ -64,7 +64,7 @@ function FormSection({
   return (
     <section className="border-b border-line pb-6 last:border-0 last:pb-0">
       <div className="mb-4">
-        <h3 className="text-[13.5px] font-medium text-ink">{title}</h3>
+        <h3 className="font-display text-[19px] font-normal tracking-[-0.015em] text-ink">{title}</h3>
         <p className="mt-0.5 text-[11.5px] leading-relaxed text-muted">{description}</p>
       </div>
       {children}
@@ -105,7 +105,7 @@ function Readiness({ agent }: { agent: Agent }) {
                 "flex h-4 w-4 items-center justify-center rounded-full border",
                 check.ok
                   ? "border-accent/30 bg-accent/15 text-accent"
-                  : "border-line bg-white/[0.03] text-muted-2",
+                  : "border-line bg-surface-2 text-muted-2",
               )}
             >
               {check.ok ? <Check className="h-2.5 w-2.5" /> : <X className="h-2.5 w-2.5" />}
@@ -218,7 +218,7 @@ export default function AgentBuilderPage() {
   return (
     <div className="mx-auto max-w-[1440px] px-4 py-6 lg:px-7 lg:py-8">
       <PageHeader
-        eyebrow={`Agent builder · ${form.id}`}
+        eyebrow={`02 — Agent builder · ${form.id}`}
         title={
           <span className="flex flex-wrap items-center gap-3">
             {form.name}
@@ -315,10 +315,10 @@ export default function AgentBuilderPage() {
                         type="button"
                         onClick={() => update("tone", tone)}
                         className={cn(
-                          "rounded-full border px-3 py-1.5 text-[11.5px] transition-colors",
+                          "rounded-none border px-3 py-1.5 font-mono text-[9px] uppercase tracking-[0.12em] transition-colors",
                           form.tone === tone
-                            ? "border-accent/40 bg-accent/10 text-accent"
-                            : "border-line bg-white/[0.02] text-muted hover:border-line-strong hover:text-ink",
+                            ? "border-accent bg-accent text-accent-ink"
+                            : "border-line bg-surface-2/50 text-muted hover:border-line-strong hover:text-ink",
                         )}
                       >
                         {tone}
@@ -379,10 +379,10 @@ export default function AgentBuilderPage() {
                             )
                           }
                           className={cn(
-                            "flex items-center justify-between rounded-xl border px-3 py-3 text-left transition-colors",
+                            "flex items-center justify-between rounded-none border px-3 py-3 text-left transition-colors",
                             selected
                               ? "border-accent/35 bg-accent/[0.07]"
-                              : "border-line bg-white/[0.02] hover:border-line-strong",
+                              : "border-line bg-surface-2/50 hover:border-line-strong",
                           )}
                         >
                           <div>
@@ -422,10 +422,10 @@ export default function AgentBuilderPage() {
                           type="button"
                           onClick={() => update("voice", voice.id)}
                           className={cn(
-                            "flex w-full items-center gap-3 rounded-xl border px-3 py-2.5 text-left transition-colors",
+                            "flex w-full items-center gap-3 rounded-none border px-3 py-2.5 text-left transition-colors",
                             selected
                               ? "border-accent/35 bg-accent/[0.06]"
-                              : "border-line bg-white/[0.02] hover:border-line-strong",
+                              : "border-line bg-surface-2/50 hover:border-line-strong",
                           )}
                         >
                           <span
@@ -433,7 +433,7 @@ export default function AgentBuilderPage() {
                               "flex h-8 w-8 items-center justify-center rounded-full border",
                               selected
                                 ? "border-accent/30 bg-accent/15 text-accent"
-                                : "border-line bg-white/[0.03] text-muted-2",
+                                : "border-line bg-surface-2 text-muted-2",
                             )}
                           >
                             <Mic2 className="h-3.5 w-3.5" />
@@ -452,7 +452,7 @@ export default function AgentBuilderPage() {
                           <span
                             className={cn(
                               "h-2 w-2 rounded-full",
-                              selected ? "bg-accent" : "bg-white/15",
+                              selected ? "bg-accent" : "bg-ink/25",
                             )}
                           />
                         </button>
@@ -480,7 +480,7 @@ export default function AgentBuilderPage() {
                     />
                   </div>
 
-                  <div className="mt-4 flex items-center justify-between rounded-xl border border-line bg-white/[0.022] px-3 py-2.5">
+                  <div className="mt-4 flex items-center justify-between rounded-none border border-line bg-surface-2/60 px-3 py-2.5">
                     <div>
                       <p className="text-[11.5px] font-medium text-ink">Voice preview</p>
                       <p className="mt-0.5 text-[10px] text-muted-2">
@@ -543,9 +543,9 @@ export default function AgentBuilderPage() {
                     {sources.map((source) => (
                       <div
                         key={source.name}
-                        className="flex items-center gap-3 rounded-xl border border-line bg-white/[0.02] px-3 py-2.5"
+                        className="flex items-center gap-3 rounded-none border border-line bg-surface-2/50 px-3 py-2.5"
                       >
-                        <span className="flex h-8 w-8 items-center justify-center rounded-lg border border-line bg-white/[0.03] text-muted">
+                        <span className="flex h-8 w-8 items-center justify-center rounded-none border border-line bg-surface-2 text-muted">
                           <BookOpen className="h-3.5 w-3.5" />
                         </span>
                         <div className="min-w-0 flex-1">
@@ -602,16 +602,16 @@ export default function AgentBuilderPage() {
                       <div
                         key={tool.id}
                         className={cn(
-                          "flex items-start gap-3 rounded-xl border px-3 py-3 transition-colors",
-                          enabled ? "border-accent/25 bg-accent/[0.035]" : "border-line bg-white/[0.018]",
+                          "flex items-start gap-3 rounded-none border px-3 py-3 transition-colors",
+                          enabled ? "border-accent/25 bg-accent/[0.035]" : "border-line bg-surface-2",
                         )}
                       >
                         <span
                           className={cn(
-                            "mt-0.5 flex h-8 w-8 items-center justify-center rounded-lg border",
+                            "mt-0.5 flex h-8 w-8 items-center justify-center rounded-none border",
                             enabled
                               ? "border-accent/25 bg-accent/10 text-accent"
-                              : "border-line bg-white/[0.03] text-muted-2",
+                              : "border-line bg-surface-2 text-muted-2",
                           )}
                         >
                           <Wrench className="h-3.5 w-3.5" />
@@ -642,7 +642,7 @@ export default function AgentBuilderPage() {
                     );
                   })}
                 </div>
-                <div className="mt-4 rounded-xl border border-amber/15 bg-amber/[0.04] px-3 py-2.5">
+                <div className="mt-4 rounded-none border border-amber/15 bg-amber/[0.04] px-3 py-2.5">
                   <p className="text-[10.5px] leading-relaxed text-amber/90">
                     Sandbox isolation is on. Tools return test data only — no production records are
                     read or written.
@@ -731,7 +731,7 @@ export default function AgentBuilderPage() {
                     {form.escalation.keywords.map((keyword) => (
                       <span
                         key={keyword}
-                        className="inline-flex items-center gap-1 rounded-full border border-line bg-white/[0.035] px-2 py-1 text-[10.5px] text-muted"
+                        className="inline-flex items-center gap-1 rounded-full border border-line bg-surface-2 px-2 py-1 text-[10.5px] text-muted"
                       >
                         {keyword}
                         <button
@@ -796,7 +796,7 @@ export default function AgentBuilderPage() {
 
         <div className="space-y-4">
           <Panel className="overflow-hidden">
-            <div className="dot-bg relative border-b border-line bg-gradient-to-b from-white/[0.03] to-transparent p-4">
+            <div className="dot-bg relative border-b border-line bg-gradient-to-b from-surface-2 to-transparent p-4">
               <div className="flex items-center justify-between">
                 <Badge tone="accent" dot>
                   Live preview
@@ -805,7 +805,7 @@ export default function AgentBuilderPage() {
               </div>
               <div className="mt-5 flex flex-col items-center text-center">
                 <AgentAvatar name={form.name} color={form.color} size="xl" status={form.status} />
-                <h3 className="mt-3 text-[15px] font-medium text-ink">{form.name}</h3>
+                <h3 className="mt-3 font-display text-[19px] font-normal text-ink">{form.name}</h3>
                 <p className="text-[10.5px] text-muted">{form.role}</p>
                 <div className="mt-2">
                   <LanguageStack languages={form.languages} />
@@ -820,7 +820,7 @@ export default function AgentBuilderPage() {
                   ))}
                 </div>
               </div>
-              <div className="mt-5 rounded-xl border border-line bg-black/20 px-3 py-2.5">
+              <div className="mt-5 rounded-none border border-line bg-surface-2 px-3 py-2.5">
                 <p className="text-[11px] leading-relaxed text-muted">&ldquo;{form.greeting}&rdquo;</p>
               </div>
             </div>
@@ -853,7 +853,7 @@ export default function AgentBuilderPage() {
                       "flex h-6 w-6 items-center justify-center rounded-full border font-mono text-[8.5px]",
                       offset === 0
                         ? "border-accent/30 bg-accent/10 text-accent"
-                        : "border-line bg-white/[0.025] text-muted-2",
+                        : "border-line bg-surface text-muted-2",
                     )}
                   >
                     v{Math.max(1, form.version - offset)}
@@ -884,7 +884,7 @@ export default function AgentBuilderPage() {
 
           <Panel className="p-4">
             <div className="flex items-start gap-2.5">
-              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-amber/20 bg-amber/[0.07] text-amber">
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-none border border-amber/20 bg-amber/[0.07] text-amber">
                 <Sparkles className="h-3.5 w-3.5" />
               </span>
               <div>

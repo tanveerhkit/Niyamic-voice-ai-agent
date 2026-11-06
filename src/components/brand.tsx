@@ -3,34 +3,58 @@ import { cn, initials, LANGUAGE_NATIVE, LANGUAGE_SHORT } from "@/lib/utils";
 import type { AgentColor, AgentState, Language, RiskLevel } from "@/lib/types";
 import { Badge } from "./ui";
 
+export function Wordmark({
+  tone = "ink",
+  size = "md",
+}: {
+  tone?: "ink" | "light";
+  size?: "sm" | "md" | "lg";
+}) {
+  const sizes = {
+    sm: "text-[15px]",
+    md: "text-[19px]",
+    lg: "text-[26px]",
+  };
+  return (
+    <span
+      className={cn(
+        "inline-flex select-none items-baseline gap-[0.28em] whitespace-nowrap font-sans leading-none",
+        sizes[size],
+      )}
+    >
+      <span
+        className={cn(
+          "font-bold tracking-[-0.055em]",
+          tone === "light" ? "text-[#f8f7f6]" : "text-ink",
+        )}
+      >
+        Niyamic
+      </span>
+      <span
+        className={cn(
+          "font-light tracking-[-0.025em]",
+          tone === "light" ? "text-[#f8f7f6]/70" : "text-ink/65",
+        )}
+      >
+        Echo
+      </span>
+    </span>
+  );
+}
+
 export function Logo({ compact }: { compact?: boolean }) {
   return (
-    <Link href="/" className="group flex items-center gap-2.5">
-      <span className="relative flex h-8 w-8 items-center justify-center overflow-hidden rounded-[10px] bg-accent text-accent-ink shadow-[0_0_28px_-8px_rgba(201,247,111,0.7)]">
-        <svg viewBox="0 0 24 24" className="h-[17px] w-[17px]" fill="none" aria-hidden>
-          <path
-            d="M3 12h2.4l1.7-6.2L10.4 18l2.5-9.4 1.7 6.2h2.2l1.5-3.8H21"
-            stroke="currentColor"
-            strokeWidth="2.1"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-      </span>
-      {!compact ? (
-        <span className="text-[13px] font-semibold tracking-[-0.03em] text-ink whitespace-nowrap">
-          Niyamic-Voice-AI-Agent<span className="text-accent">.</span>
-        </span>
-      ) : null}
+    <Link href="/" className="group inline-flex items-center" aria-label="Niyamic Echo">
+      <Wordmark size={compact ? "sm" : "md"} />
     </Link>
   );
 }
 
 const avatarColors: Record<AgentColor, string> = {
-  lime: "from-[#ddff96] via-[#b9e85a] to-[#6b9528] text-[#121706]",
-  cyan: "from-[#a8f5ff] via-[#66d8e8] to-[#257b87] text-[#031619]",
-  violet: "from-[#d8ccff] via-[#b6a4ff] to-[#6f59b8] text-[#0f0a24]",
-  amber: "from-[#ffe0a8] via-[#ffc36b] to-[#bd7922] text-[#1b1102]",
+  lime: "from-[#efece7] via-[#ded8cf] to-[#c6bcb0] text-[#221e1c]",
+  cyan: "from-[#e3e9e6] via-[#c8d6d0] to-[#a6bab2] text-[#1f2a27]",
+  violet: "from-[#eae4ee] via-[#d6cadd] to-[#bba9c6] text-[#2b2233]",
+  amber: "from-[#f1e6d8] via-[#e4cdb2] to-[#cdae8a] text-[#33271a]",
 };
 
 export function AgentAvatar({
@@ -57,7 +81,7 @@ export function AgentAvatar({
     <span className={cn("relative inline-flex shrink-0", className)}>
       <span
         className={cn(
-          "inline-flex items-center justify-center rounded-full bg-gradient-to-br font-semibold tracking-[-0.02em] ring-1 ring-white/15",
+          "inline-flex items-center justify-center rounded-full bg-gradient-to-br font-medium tracking-[-0.02em] ring-1 ring-ink/10",
           avatarColors[color],
           sizes[size],
         )}
@@ -87,10 +111,10 @@ export function LanguageTag({
 }) {
   return (
     <span
-      className="inline-flex items-center gap-1.5 rounded-md border border-line bg-white/[0.035] px-1.5 py-0.5 text-[10px] font-medium text-muted"
+      className="inline-flex items-center gap-1.5 rounded-none border border-line bg-surface-2 px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-[0.08em] text-muted"
       title={LANGUAGE_NATIVE[language]}
     >
-      <span className="font-mono text-[9px] text-accent">{LANGUAGE_SHORT[language]}</span>
+      <span className="font-mono text-[9px] font-medium text-ink">{LANGUAGE_SHORT[language]}</span>
       {variant === "default" ? <span>{LANGUAGE_NATIVE[language]}</span> : null}
       {variant === "native" ? <span>{LANGUAGE_NATIVE[language]}</span> : null}
     </span>
@@ -133,7 +157,7 @@ export function AgentStateBadge({ state }: { state: AgentState }) {
 
 export function LivePill({ label = "Live" }: { label?: string }) {
   return (
-    <span className="inline-flex items-center gap-1.5 rounded-full border border-red/25 bg-red/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-[0.12em] text-red">
+    <span className="inline-flex items-center gap-1.5 rounded-none border border-red/30 bg-red/[0.06] px-2 py-1 font-mono text-[9px] uppercase tracking-[0.16em] text-red">
       <span className="live-dot h-1.5 w-1.5 rounded-full bg-red" />
       {label}
     </span>

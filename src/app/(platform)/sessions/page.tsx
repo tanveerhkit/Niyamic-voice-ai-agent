@@ -92,7 +92,7 @@ export default function SessionsPage() {
   return (
     <div className="mx-auto max-w-[1440px] px-4 py-6 lg:px-7 lg:py-8">
       <PageHeader
-        eyebrow="Session log · transcripts + summaries"
+        eyebrow="03 — Session log · transcripts + summaries"
         title={
           <>
             Every call leaves a <span className="font-serif italic text-accent">trail</span>.
@@ -241,7 +241,7 @@ export default function SessionsPage() {
         )}
       </Panel>
 
-      <div className="mt-4 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-line bg-white/[0.015] px-4 py-2.5">
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-line bg-surface-2 px-4 py-2.5">
         <p className="text-[9.5px] text-muted-2">
           Demo dataset: 1,284 simulated sessions · detailed transcripts on top records · live calls
           append automatically.

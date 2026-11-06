@@ -20,7 +20,7 @@ import type { ChartPoint } from "@/lib/types";
 
 const axisStyle = {
   fontSize: 9.5,
-  fill: "#5f6570",
+  fill: "#96908a",
   fontFamily: "var(--font-geist-mono)",
 };
 
@@ -31,7 +31,7 @@ type TooltipPayload = {
   dataKey?: string | number;
 };
 
-function DarkTooltip({
+function ChartTooltip({
   active,
   payload,
   label,
@@ -42,7 +42,7 @@ function DarkTooltip({
 }) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="rounded-xl border border-line-strong bg-[#12151b]/95 px-3 py-2 shadow-2xl backdrop-blur-xl">
+    <div className="rounded-none border border-line-strong bg-surface px-3 py-2 shadow-[0_8px_30px_rgba(0,0,0,0.12)]">
       <p className="mb-1 font-mono text-[9px] uppercase tracking-[0.12em] text-muted-2">{label}</p>
       {payload.map((item) => (
         <div key={String(item.dataKey)} className="flex items-center gap-2 text-[11px]">
@@ -59,18 +59,18 @@ export function SessionsChart({ data, height = 248 }: { data: ChartPoint[]; heig
   return (
     <div style={{ height }} className="w-full">
       <ResponsiveContainer width="100%" height="100%">
-        <AreaChart data={data} margin={{ top: 8, right: 6, left: -26, bottom: 0 }}>
+        <AreaChart data={data} margin={{ top: 8, right: 6, left: -4, bottom: 0 }}>
           <defs>
             <linearGradient id="fillContained" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#c9f76f" stopOpacity={0.24} />
-              <stop offset="100%" stopColor="#c9f76f" stopOpacity={0} />
+              <stop offset="0%" stopColor="#221e1c" stopOpacity={0.24} />
+              <stop offset="100%" stopColor="#221e1c" stopOpacity={0} />
             </linearGradient>
             <linearGradient id="fillTransferred" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#ffb84d" stopOpacity={0.16} />
-              <stop offset="100%" stopColor="#ffb84d" stopOpacity={0} />
+              <stop offset="0%" stopColor="#a9762a" stopOpacity={0.16} />
+              <stop offset="100%" stopColor="#a9762a" stopOpacity={0} />
             </linearGradient>
           </defs>
-          <CartesianGrid stroke="rgba(255,255,255,0.055)" vertical={false} strokeDasharray="3 4" />
+          <CartesianGrid stroke="rgba(34,30,28,0.09)" vertical={false} strokeDasharray="3 4" />
           <XAxis
             dataKey="label"
             tick={axisStyle}
@@ -80,28 +80,28 @@ export function SessionsChart({ data, height = 248 }: { data: ChartPoint[]; heig
             dy={8}
           />
           <YAxis tick={axisStyle} tickLine={false} axisLine={false} width={34} />
-          <Tooltip content={<DarkTooltip />} cursor={{ stroke: "rgba(255,255,255,0.12)" }} />
+          <Tooltip content={<ChartTooltip />} cursor={{ stroke: "rgba(34,30,28,0.2)" }} />
           <Area
             type="monotone"
             dataKey="contained"
             name="AI contained"
-            stroke="#c9f76f"
+            stroke="#221e1c"
             strokeWidth={1.8}
             fill="url(#fillContained)"
             dot={false}
             isAnimationActive={false}
-            activeDot={{ r: 3, fill: "#c9f76f", stroke: "#0c0e11", strokeWidth: 2 }}
+            activeDot={{ r: 3, fill: "#221e1c", stroke: "#ffffff", strokeWidth: 2 }}
           />
           <Area
             type="monotone"
             dataKey="transferred"
             name="Transferred"
-            stroke="#ffb84d"
+            stroke="#a9762a"
             strokeWidth={1.5}
             fill="url(#fillTransferred)"
             dot={false}
             isAnimationActive={false}
-            activeDot={{ r: 3, fill: "#ffb84d", stroke: "#0c0e11", strokeWidth: 2 }}
+            activeDot={{ r: 3, fill: "#a9762a", stroke: "#ffffff", strokeWidth: 2 }}
           />
         </AreaChart>
       </ResponsiveContainer>
@@ -118,8 +118,8 @@ export function ContainmentTrend({ data, height = 170 }: { data: ChartPoint[]; h
   return (
     <div style={{ height }} className="w-full">
       <ResponsiveContainer width="100%" height="100%">
-        <LineChart data={points} margin={{ top: 8, right: 6, left: -30, bottom: 0 }}>
-          <CartesianGrid stroke="rgba(255,255,255,0.055)" vertical={false} strokeDasharray="3 4" />
+        <LineChart data={points} margin={{ top: 8, right: 6, left: -8, bottom: 0 }}>
+          <CartesianGrid stroke="rgba(34,30,28,0.09)" vertical={false} strokeDasharray="3 4" />
           <XAxis dataKey="label" tick={axisStyle} tickLine={false} axisLine={false} interval={3} dy={8} />
           <YAxis
             tick={axisStyle}
@@ -129,16 +129,16 @@ export function ContainmentTrend({ data, height = 170 }: { data: ChartPoint[]; h
             domain={[55, 90]}
             tickFormatter={(value) => `${value}%`}
           />
-          <Tooltip content={<DarkTooltip />} cursor={{ stroke: "rgba(255,255,255,0.12)" }} />
+          <Tooltip content={<ChartTooltip />} cursor={{ stroke: "rgba(34,30,28,0.2)" }} />
           <Line
             type="monotone"
             dataKey="containment"
             name="Containment"
-            stroke="#6fe3f5"
+            stroke="#3f6b63"
             strokeWidth={1.8}
             dot={false}
             isAnimationActive={false}
-            activeDot={{ r: 3, fill: "#6fe3f5", stroke: "#0c0e11", strokeWidth: 2 }}
+            activeDot={{ r: 3, fill: "#3f6b63", stroke: "#ffffff", strokeWidth: 2 }}
           />
         </LineChart>
       </ResponsiveContainer>
@@ -177,7 +177,7 @@ export function Donut({
               <Cell key={entry.name} fill={entry.color} />
             ))}
           </Pie>
-          <Tooltip content={<DarkTooltip />} />
+          <Tooltip content={<ChartTooltip />} />
         </PieChart>
       </ResponsiveContainer>
       <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
@@ -201,7 +201,7 @@ export function IntentBars({
     <div style={{ height }} className="w-full">
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={data} layout="vertical" margin={{ top: 0, right: 12, left: 0, bottom: 0 }}>
-          <CartesianGrid stroke="rgba(255,255,255,0.055)" horizontal={false} strokeDasharray="3 4" />
+          <CartesianGrid stroke="rgba(34,30,28,0.09)" horizontal={false} strokeDasharray="3 4" />
           <XAxis type="number" tick={axisStyle} tickLine={false} axisLine={false} />
           <YAxis
             type="category"
@@ -211,8 +211,8 @@ export function IntentBars({
             axisLine={false}
             width={118}
           />
-          <Tooltip content={<DarkTooltip />} cursor={{ fill: "rgba(255,255,255,0.03)" }} />
-          <Bar dataKey="count" name="Sessions" fill="#c9f76f" radius={[0, 4, 4, 0]} barSize={9} isAnimationActive={false} />
+          <Tooltip content={<ChartTooltip />} cursor={{ fill: "rgba(34,30,28,0.04)" }} />
+          <Bar dataKey="count" name="Sessions" fill="#221e1c" radius={0} barSize={9} isAnimationActive={false} />
         </BarChart>
       </ResponsiveContainer>
     </div>
@@ -221,7 +221,7 @@ export function IntentBars({
 
 export function Sparkline({
   values,
-  tone = "#c9f76f",
+  tone = "#221e1c",
   width = 92,
   height = 28,
 }: {

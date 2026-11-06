@@ -32,7 +32,6 @@ import {
   AgentPerformanceList,
   LiveNowCard,
   MetricCard,
-  PageHeader,
   SessionTable,
   TransferReasonList,
 } from "@/components/dashboard";
@@ -81,45 +80,93 @@ export default function OverviewPage() {
   const languageDonut = languages.map((item, index) => ({
     name: item.label,
     value: item.count,
-    color: ["#c9f76f", "#b6a4ff", "#6fe3f5"][index] ?? "#c9f76f",
+    color: ["#221e1c", "#6b5a7d", "#3f6b63"][index] ?? "#221e1c",
   }));
 
   const sentimentDonut = sentiment.map((item, index) => ({
     name: item.label,
     value: item.count,
-    color: ["#6ee7a8", "#8b919c", "#ff6b6b"][index] ?? "#6ee7a8",
+    color: ["#4a6b45", "#96908a", "#a33a2a"][index] ?? "#4a6b45",
   }));
 
   const transfers = Math.round((overview.transferRate / 100) * overview.total);
 
   return (
-    <div className="mx-auto max-w-[1440px] px-4 py-6 lg:px-7 lg:py-8">
-      <PageHeader
-        eyebrow={`Voice operations · ${demoNowLabel}`}
-        title={
-          <>
-            Every conversation, <span className="font-serif italic text-accent">handled</span>.
-          </>
-        }
-        description="AI runs the call until it has a reason not to. Humans take over in the same session — with the full transcript, intent, and context already in hand."
-        actions={
-          <>
-            <Button variant="outline" size="md">
-              <CalendarDays className="h-3.5 w-3.5" />
-              Last 30 days
-            </Button>
-            <StartCallButton />
-          </>
-        }
-      />
+    <div className="mx-auto max-w-[1440px] px-4 py-5 lg:px-7 lg:py-6">
+      <section className="panel-ink relative overflow-hidden">
+        <div className="grid-bg-dark pointer-events-none absolute inset-0 opacity-70" />
+        <div className="relative grid gap-10 p-6 md:p-10 lg:grid-cols-[minmax(0,1.55fr)_minmax(0,1fr)] lg:gap-14 lg:p-12">
+          <div>
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/15 pb-4">
+              <p className="font-mono text-[9px] uppercase tracking-[0.22em] text-white/50">
+                AI-native voice operations
+              </p>
+              <p className="font-mono text-[9px] uppercase tracking-[0.16em] text-white/35">
+                {demoNowLabel}
+              </p>
+            </div>
 
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            <h1 className="mt-8 max-w-[720px] font-display text-[42px] font-light leading-[1.02] tracking-[-0.035em] text-[#f8f7f6] md:text-[62px] lg:text-[68px]">
+              Every conversation,
+              <br />
+              <span className="italic text-white/55">handled.</span>
+            </h1>
+
+            <p className="mt-6 max-w-[520px] text-[13px] leading-[1.8] text-white/55">
+              AI runs the call until it has a reason not to. Humans take over in the same
+              session — with the full transcript, intent, and context already in hand.
+            </p>
+
+            <div className="mt-8 flex flex-wrap items-center gap-2">
+              <Button
+                variant="outline"
+                size="md"
+                className="border-white/25 bg-white/5 text-[#f8f7f6] hover:border-white hover:bg-white hover:text-ink"
+              >
+                <CalendarDays className="h-3.5 w-3.5" />
+                Last 30 days
+              </Button>
+              <StartCallButton />
+            </div>
+          </div>
+
+          <div className="self-end border border-white/15">
+            <p className="border-b border-white/15 px-4 py-3 font-mono text-[8.5px] uppercase tracking-[0.2em] text-white/40">
+              Decision loop
+            </p>
+            {[
+              { n: "01", t: "Listen", d: "Streaming STT · language auto-detect" },
+              { n: "02", t: "Decide", d: "Policy, confidence and risk gates" },
+              { n: "03", t: "Hand off", d: "Human joins with the full context" },
+            ].map((step, index) => (
+              <div
+                key={step.n}
+                className={`flex items-start gap-4 px-4 py-4 ${index > 0 ? "border-t border-white/15" : ""}`}
+              >
+                <span className="mt-0.5 font-mono text-[9px] tracking-[0.1em] text-white/35">
+                  {step.n}
+                </span>
+                <div>
+                  <p className="font-display text-[19px] font-light leading-tight text-[#f8f7f6]">
+                    {step.t}
+                  </p>
+                  <p className="mt-1 font-mono text-[8.5px] uppercase leading-relaxed tracking-[0.1em] text-white/40">
+                    {step.d}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <MetricCard
           label="Conversations"
           value={overview.total.toLocaleString()}
           detail="30-day total"
           trend={12.4}
-          trendLabel="vs. previous 30 days"
+          trendLabel="vs. prior 30d"
           spark={[72, 88, 81, 96, 92, 110, 104, 118]}
           icon={<MessageSquare className="h-4 w-4" />}
         />
@@ -140,7 +187,7 @@ export default function OverviewPage() {
           suffix="%"
           detail={`${transfers} transfers`}
           trend={-0.8}
-          trendLabel="down from 15.0%"
+          trendLabel="down from 15%"
           spark={[16, 15.2, 15.8, 14.9, 15.1, 14.4, 14.7, 14.2]}
           tone="amber"
           icon={<Headphones className="h-4 w-4" />}
@@ -150,7 +197,7 @@ export default function OverviewPage() {
           value={formatHandleTime(overview.avgDurationSec)}
           detail="Across all sessions"
           trend={-4.2}
-          trendLabel="18s faster than last month"
+          trendLabel="18s faster"
           spark={[246, 238, 242, 231, 228, 226, 225, 222]}
           tone="cyan"
           icon={<Timer className="h-4 w-4" />}
@@ -174,12 +221,12 @@ export default function OverviewPage() {
                     <span className="h-1.5 w-1.5 rounded-full bg-amber" /> Transferred
                   </span>
                 </div>
-                <div className="flex rounded-lg border border-line bg-white/[0.025] p-0.5">
+                <div className="flex rounded-none border border-line bg-surface p-0.5">
                   <button
                     type="button"
                     onClick={() => setChartMode("volume")}
-                    className={`rounded-md px-2.5 py-1 text-[10.5px] font-medium transition-colors ${
-                      chartMode === "volume" ? "bg-white/[0.08] text-ink" : "text-muted hover:text-ink"
+                    className={`rounded-none px-2.5 py-1 font-mono text-[9px] uppercase tracking-[0.1em] transition-colors ${
+                      chartMode === "volume" ? "bg-accent text-accent-ink" : "text-muted hover:text-ink"
                     }`}
                   >
                     Volume
@@ -187,9 +234,9 @@ export default function OverviewPage() {
                   <button
                     type="button"
                     onClick={() => setChartMode("containment")}
-                    className={`rounded-md px-2.5 py-1 text-[10.5px] font-medium transition-colors ${
+                    className={`rounded-none px-2.5 py-1 font-mono text-[9px] uppercase tracking-[0.1em] transition-colors ${
                       chartMode === "containment"
-                        ? "bg-white/[0.08] text-ink"
+                        ? "bg-accent text-accent-ink"
                         : "text-muted hover:text-ink"
                     }`}
                   >
@@ -278,7 +325,7 @@ export default function OverviewPage() {
             </div>
             <LiveNowCard sessions={liveRows} />
             <Link href="/supervisor" className="mt-3 block">
-              <div className="flex items-center justify-between rounded-xl border border-dashed border-line-strong bg-white/[0.015] px-3 py-2.5 transition-colors hover:bg-white/[0.035]">
+              <div className="flex items-center justify-between rounded-none border border-dashed border-line-strong bg-surface-2 px-3 py-2.5 transition-colors hover:bg-surface-3">
                 <div className="flex items-center gap-2">
                   <Headphones className="h-3.5 w-3.5 text-cyan" />
                   <span className="text-[11px] text-muted">Human desk is staffed</span>
@@ -326,14 +373,14 @@ export default function OverviewPage() {
             description="Detected automatically during the call."
             action={<Languages className="h-4 w-4 text-muted-2" />}
           />
-          <div className="mt-2 grid grid-cols-[140px_1fr] items-center gap-3">
+          <div className="mt-2 grid grid-cols-[140px_minmax(0,1fr)] items-center gap-3">
             <Donut data={languageDonut} centerValue={overview.total.toLocaleString()} centerLabel="sessions" />
             <div className="space-y-2.5">
               {languages.map((item, index) => (
                 <div key={item.language} className="flex items-center gap-2">
                   <span
                     className="h-1.5 w-1.5 rounded-full"
-                    style={{ background: ["#c9f76f", "#b6a4ff", "#6fe3f5"][index] }}
+                    style={{ background: ["#221e1c", "#6b5a7d", "#3f6b63"][index] }}
                   />
                   <span className="flex-1 text-[11px] text-muted">{item.label}</span>
                   <span className="font-mono text-[10px] text-ink">{item.share.toFixed(0)}%</span>
@@ -352,7 +399,7 @@ export default function OverviewPage() {
             description="Post-call classification from the summary."
             action={<Sparkles className="h-4 w-4 text-muted-2" />}
           />
-          <div className="mt-2 grid grid-cols-[140px_1fr] items-center gap-3">
+          <div className="mt-2 grid grid-cols-[140px_minmax(0,1fr)] items-center gap-3">
             <Donut
               data={sentimentDonut}
               centerValue={overview.avgCsat.toFixed(1)}
@@ -363,7 +410,7 @@ export default function OverviewPage() {
                 <div key={item.sentiment} className="flex items-center gap-2">
                   <span
                     className="h-1.5 w-1.5 rounded-full"
-                    style={{ background: ["#6ee7a8", "#8b919c", "#ff6b6b"][index] }}
+                    style={{ background: ["#4a6b45", "#96908a", "#a33a2a"][index] }}
                   />
                   <span className="flex-1 text-[11px] text-muted">{item.label}</span>
                   <span className="font-mono text-[10px] text-ink">{item.share.toFixed(0)}%</span>
@@ -390,10 +437,10 @@ export default function OverviewPage() {
           />
           <div className="mt-3 space-y-3">
             {insights.map((insight) => (
-              <div key={insight.title} className="rounded-xl border border-line bg-white/[0.022] p-3">
+              <div key={insight.title} className="rounded-none border border-line bg-surface-2/60 p-3">
                 <div className="flex items-start gap-2.5">
                   <span
-                    className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-lg ${
+                    className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-none ${
                       insight.tone === "risk"
                         ? "bg-red/10 text-red"
                         : insight.tone === "warning"
@@ -416,9 +463,9 @@ export default function OverviewPage() {
         </Panel>
       </div>
 
-      <div className="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-line bg-white/[0.015] px-4 py-3">
+      <div className="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-none border border-line bg-surface-2 px-4 py-3">
         <div className="flex items-center gap-2 text-[10.5px] text-muted-2">
-          <PhoneCall className="h-3.5 w-3.5 text-accent/70" />
+          <PhoneCall className="h-3.5 w-3.5 text-muted-2" />
           <span>
             Demo dataset: 1,284 simulated sessions · all times in local timezone · mock runtime
           </span>

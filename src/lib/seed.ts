@@ -69,7 +69,7 @@ const detail = (
 const start2481 = hoursAgo(2.2);
 
 const transcript2481: Turn[] = [
-  turn("ai", "Thanks for calling Niyamic-Voice-AI-Agent support. This is Ayesha. How can I help you today?", 0, { confidence: 0.98 }),
+  turn("ai", "Thanks for calling Niyamic Echo support. This is Ayesha. How can I help you today?", 0, { confidence: 0.98 }),
   turn("customer", "Hi, I was charged twice for the same order this month.", 8, { language: "en" }),
   turn("ai", "I'm sorry about that — duplicate charges are frustrating. I can look into it. Could you share your order number?", 15, { confidence: 0.96 }),
   turn("customer", "It's 4821. I've already called twice about this.", 24),
@@ -83,7 +83,7 @@ const transcript2481: Turn[] = [
   turn("customer", "Perfect, thank you.", 103),
   turn("ai", "You're all set, Zara. Sara has processed the cancellation and refund. Is there anything else I can help with?", 112, { confidence: 0.94 }),
   turn("customer", "No, that's all. Thanks.", 124),
-  turn("ai", "Thanks for calling Niyamic-Voice-AI-Agent. Have a great day.", 130, { confidence: 0.99 }),
+  turn("ai", "Thanks for calling Niyamic Echo. Have a great day.", 130, { confidence: 0.99 }),
 ];
 
 const summary2481: SessionSummary = {
@@ -111,7 +111,7 @@ const summary2481: SessionSummary = {
 
 const start2479 = hoursAgo(5.4);
 const transcript2479: Turn[] = [
-  turn("ai", "Niyamic-Voice-AI-Agent billing, this is Omar. What can I clear up for you?", 0, { confidence: 0.97 }),
+  turn("ai", "Niyamic Echo billing, this is Omar. What can I clear up for you?", 0, { confidence: 0.97 }),
   turn("customer", "Mera refund abhi tak nahi aaya. Teen din ho gaye hain.", 7, { language: "hi" }),
   turn("ai", "Main samajh sakta hoon — teen din wait karna frustrating hai. Aap ka order number bata dijiye, main status check karta hoon.", 14, { confidence: 0.94, language: "hi" }),
   turn("customer", "Order 5520.", 23),
@@ -124,7 +124,7 @@ const transcript2479: Turn[] = [
   turn("human", "I've also added a note so you don't have to explain this again.", 81),
   turn("ai", "You're all set. Is there anything else I can help with?", 90, { confidence: 0.95 }),
   turn("customer", "No, that's it.", 98),
-  turn("ai", "Thanks for calling Niyamic-Voice-AI-Agent.", 103),
+  turn("ai", "Thanks for calling Niyamic Echo.", 103),
 ];
 
 const summary2479: SessionSummary = {
@@ -152,13 +152,13 @@ const summary2479: SessionSummary = {
 
 const start2474 = DEMO_NOW_MS - 26 * 3_600_000;
 const transcript2474: Turn[] = [
-  turn("ai", "Niyamic-Voice-AI-Agent support se baat kar rahi hoon, main Ayesha. Kaise madad kar sakti hoon?", 0, { confidence: 0.96, language: "ur" }),
+  turn("ai", "Niyamic Echo support se baat kar rahi hoon, main Ayesha. Kaise madad kar sakti hoon?", 0, { confidence: 0.96, language: "ur" }),
   turn("customer", "Mera order 4412 teen din se deliver nahi hua.", 8, { language: "ur" }),
   turn("ai", "Main dekh rahi hoon... Order 4412 ka carrier scan do din se update nahi hua. Main trace open kar rahi hoon aur aap ko SMS par update bhej doongi.", 17, { confidence: 0.89, language: "ur" }),
   turn("customer", "Theek hai, shukriya.", 29, { language: "ur" }),
   turn("ai", "Aap ka order kal tak deliver ho jana chahiye. Agar nahi hua to main replacement arrange kar doongi. Kuch aur?", 36, { confidence: 0.93, language: "ur" }),
   turn("customer", "Nahi, bas.", 47, { language: "ur" }),
-  turn("ai", "Shukriya. Niyamic-Voice-AI-Agent ko call karne ka shukriya.", 52, { confidence: 0.98, language: "ur" }),
+  turn("ai", "Shukriya. Niyamic Echo ko call karne ka shukriya.", 52, { confidence: 0.98, language: "ur" }),
 ];
 
 const summary2474: SessionSummary = {
@@ -183,7 +183,7 @@ const summary2474: SessionSummary = {
 
 const start2468 = DEMO_NOW_MS - 37 * 3_600_000;
 const transcript2468: Turn[] = [
-  turn("ai", "Hi, this is Maya from Niyamic-Voice-AI-Agent onboarding. Ready to get you set up?", 0, { confidence: 0.97 }),
+  turn("ai", "Hi, this is Maya from Niyamic Echo onboarding. Ready to get you set up?", 0, { confidence: 0.97 }),
   turn("customer", "Yes — I need to add my second agent and connect a phone number.", 7),
   turn("ai", "Great. I can see your workspace is on Growth, so the second agent is included. I'll walk you through it. First, open Settings → Agents.", 15, { confidence: 0.92 }),
   turn("customer", "Done.", 25),
@@ -216,7 +216,7 @@ const summary2468: SessionSummary = {
 
 const start2461 = DEMO_NOW_MS - 51 * 3_600_000;
 const transcript2461: Turn[] = [
-  turn("ai", "Niyamic-Voice-AI-Agent billing, this is Omar. What can I clear up for you?", 0, { confidence: 0.95 }),
+  turn("ai", "Niyamic Echo billing, this is Omar. What can I clear up for you?", 0, { confidence: 0.95 }),
   turn("customer", "I want to cancel my subscription. This is the third time I've had to call.", 6, { language: "ur" }),
   turn("ai", "I'm sorry you've had to call three times. I can help with the cancellation. Before I do, can I ask what went wrong?", 14, { confidence: 0.71, language: "ur" }),
   turn("customer", "The invoices are always wrong. I'm done.", 24, { language: "ur" }),
@@ -227,7 +227,7 @@ const transcript2461: Turn[] = [
   turn("human", "Absolutely. I'll send the cancellation confirmation and the corrected invoice before we hang up.", 66),
   turn("ai", "Sara has sent both documents. Is there anything else I can help with?", 78, { confidence: 0.91 }),
   turn("customer", "No.", 86),
-  turn("ai", "Thanks for calling Niyamic-Voice-AI-Agent.", 89),
+  turn("ai", "Thanks for calling Niyamic Echo.", 89),
 ];
 
 const summary2461: SessionSummary = {
@@ -254,7 +254,7 @@ const summary2461: SessionSummary = {
 
 const start2455 = DEMO_NOW_MS - 70 * 3_600_000;
 const transcript2455: Turn[] = [
-  turn("ai", "Thanks for calling Niyamic-Voice-AI-Agent support. This is Ayesha. How can I help?", 0, { confidence: 0.95 }),
+  turn("ai", "Thanks for calling Niyamic Echo support. This is Ayesha. How can I help?", 0, { confidence: 0.95 }),
   turn("customer", "My card keeps failing on checkout. I've tried three times.", 7, { language: "hi" }),
   turn("ai", "I'm sorry — let's get that payment through. I can see two declined attempts on your account. The bank is returning a generic decline code.", 16, { confidence: 0.68 }),
   turn("customer", "So it's your system then?", 26),

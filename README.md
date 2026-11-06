@@ -1,8 +1,8 @@
-# Niyamic-Voice-AI-Agent
+# Niyamic Echo
 
 **Voice agents that know when to hand off.**
 
-Niyamic-Voice-AI-Agent is a demo-ready AI voice-agent platform built for a one-day walkthrough. It runs entirely in **mock mode** in the browser — no API keys, no microphone, no production data — while keeping the event model and screens that a real LiveKit + Azure pipeline will plug into.
+Niyamic Echo is a demo-ready AI voice-agent platform built for a one-day walkthrough. It runs entirely in **mock mode** in the browser — no API keys, no microphone, no production data — while keeping the event model and screens that a real LiveKit + Azure pipeline will plug into.
 
 The demo story: **Zara Ahmed** was charged twice for order **4821**. Ayesha (AI) verifies the duplicate, hits a policy edge, and hands the call to **Sara Malik** (human) with the full transcript. Sara resolves it and returns control to Ayesha to close the call.
 
@@ -36,7 +36,7 @@ npm run lint
 
 ## Five-minute demo runbook
 
-Use **one browser profile with two tabs**. Niyamic-Voice-AI-Agent syncs live calls through `localStorage` + `BroadcastChannel`, so both tabs must share the same origin and profile. Incognito windows do not share state.
+Use **one browser profile with two tabs**. Niyamic Echo syncs live calls through `localStorage` + `BroadcastChannel`, so both tabs must share the same origin and profile. Incognito windows do not share state.
 
 ### Before you start
 

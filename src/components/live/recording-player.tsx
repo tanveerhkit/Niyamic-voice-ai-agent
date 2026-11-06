@@ -27,7 +27,7 @@ export function RecordingPlayer({ durationSec }: { durationSec: number }) {
   const elapsed = Math.round((progress / 100) * durationSec);
 
   return (
-    <div className="rounded-xl border border-line bg-white/[0.02] p-3">
+    <div className="rounded-none border border-line bg-surface-2/50 p-3">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Badge tone="outline">Recording</Badge>
@@ -61,9 +61,9 @@ export function RecordingPlayer({ durationSec }: { durationSec: number }) {
               key={index}
               className={cn(
                 "flex-1 rounded-full transition-colors",
-                filled ? "bg-accent/80" : "bg-white/[0.12]",
+                filled ? "bg-accent/80" : "bg-ink/15",
               )}
-              style={{ height }}
+              style={{ height: `${height.toFixed(1)}px` }}
             />
           );
         })}
@@ -81,7 +81,7 @@ export function RecordingPlayer({ durationSec }: { durationSec: number }) {
             setProgress(0);
             setPlaying(true);
           }}
-          className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-lg border border-line py-1.5 text-[10px] text-muted hover:text-ink"
+          className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-none border border-line py-1.5 text-[10px] text-muted hover:text-ink"
         >
           <RotateCcw className="h-3 w-3" />
           Replay

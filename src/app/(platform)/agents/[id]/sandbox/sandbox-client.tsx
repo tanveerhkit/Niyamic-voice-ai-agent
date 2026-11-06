@@ -33,9 +33,9 @@ type SandboxMessage = {
 };
 
 const GREETINGS: Record<Language, string> = {
-  en: "Thanks for calling Niyamic-Voice-AI-Agent support. This is Ayesha. How can I help you today?",
-  ur: "Niyamic-Voice-AI-Agent support se baat kar rahi hoon, main Ayesha. Kaise madad kar sakti hoon?",
-  hi: "Niyamic-Voice-AI-Agent support, main Ayesha. Main aap ki kaise madad kar sakti hoon?",
+  en: "Thanks for calling Niyamic Echo support. This is Ayesha. How can I help you today?",
+  ur: "Niyamic Echo support se baat kar rahi hoon, main Ayesha. Kaise madad kar sakti hoon?",
+  hi: "Niyamic Echo support, main Ayesha. Main aap ki kaise madad kar sakti hoon?",
 };
 
 const SAMPLES: Record<Language, string[]> = {
@@ -217,7 +217,7 @@ export default function SandboxPage() {
   return (
     <div className="mx-auto max-w-[1440px] px-4 py-6 lg:px-7 lg:py-8">
       <PageHeader
-        eyebrow="Sandbox · isolated test environment"
+        eyebrow="02 — Sandbox · isolated test environment"
         title={
           <>
             Test <span className="font-serif italic text-accent">{agent.name}</span> before a customer
@@ -251,7 +251,7 @@ export default function SandboxPage() {
       />
 
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_340px]">
-        <Panel className="flex min-h-[660px] flex-col overflow-hidden">
+        <Panel className="flex min-h-[660px] flex-col overflow-hidden self-start xl:h-[calc(100vh-296px)] xl:min-h-[600px]">
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line px-4 py-3">
             <div className="flex items-center gap-3">
               <AgentAvatar name={agent.name} color={agent.color} size="md" status="active" />
@@ -267,15 +267,15 @@ export default function SandboxPage() {
                 </p>
               </div>
             </div>
-            <div className="flex rounded-lg border border-line bg-white/[0.025] p-0.5">
+            <div className="flex rounded-none border border-line bg-surface p-0.5">
               {(["en", "ur", "hi"] as Language[]).map((item) => (
                 <button
                   key={item}
                   type="button"
                   onClick={() => changeLanguage(item)}
                   className={cn(
-                    "rounded-md px-2.5 py-1 text-[10.5px] font-medium transition-colors",
-                    language === item ? "bg-white/[0.09] text-ink" : "text-muted hover:text-ink",
+                    "rounded-none px-2.5 py-1 text-[10.5px] font-medium transition-colors",
+                    language === item ? "bg-surface-3 text-ink" : "text-muted hover:text-ink",
                   )}
                 >
                   {LANGUAGE_SHORT[item]} · {LANGUAGE_NATIVE[item]}
@@ -289,7 +289,7 @@ export default function SandboxPage() {
               if (message.role === "system") {
                 return (
                   <div key={message.id} className="mx-auto max-w-md">
-                    <div className="rounded-xl border border-amber/20 bg-amber/[0.05] p-3">
+                    <div className="rounded-none border border-amber/20 bg-amber/[0.05] p-3">
                       <div className="flex items-center gap-2">
                         <span className="flex h-5 w-5 items-center justify-center rounded-full border border-amber/30 bg-amber/15 text-amber">
                           <ArrowUpRight className="h-3 w-3" />
@@ -302,7 +302,7 @@ export default function SandboxPage() {
                         {message.text}
                       </p>
                       {message.tool ? (
-                        <div className="mt-2 rounded-lg border border-line bg-black/25 px-2.5 py-2">
+                        <div className="mt-2 rounded-none border border-line bg-surface-2 px-2.5 py-2">
                           <p className="font-mono text-[9px] text-cyan">{message.tool.label}</p>
                           <p className="mt-0.5 text-[10px] text-muted">{message.tool.result}</p>
                         </div>
@@ -322,25 +322,25 @@ export default function SandboxPage() {
                   className={cn("flex items-start gap-2.5", isUser ? "flex-row-reverse" : "")}
                 >
                   {isUser ? (
-                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-line bg-white/[0.04] font-mono text-[8.5px] text-muted">
+                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-line bg-surface-2 font-mono text-[8.5px] text-muted">
                       ZA
                     </span>
                   ) : (
                     <AgentAvatar name={agent.name} color={agent.color} size="sm" />
                   )}
-                  <div className={cn("max-w-[78%]", isUser ? "items-end text-right" : "")}>
+                  <div className={cn("max-w-[78%] xl:max-w-[520px]", isUser ? "items-end text-right" : "")}>
                     <div
                       className={cn(
-                        "rounded-2xl px-3.5 py-2.5 text-[12px] leading-relaxed",
+                        "rounded-none px-3.5 py-2.5 text-[12px] leading-relaxed",
                         isUser
                           ? "rounded-tr-md border border-cyan/20 bg-cyan/[0.08] text-ink"
-                          : "rounded-tl-md border border-line bg-white/[0.035] text-ink/90",
+                          : "rounded-tl-md border border-line bg-surface-2 text-ink/90",
                       )}
                     >
                       {message.text}
                     </div>
                     {message.tool ? (
-                      <div className="mt-1.5 rounded-xl border border-line bg-black/25 px-3 py-2 text-left">
+                      <div className="mt-1.5 rounded-none border border-line bg-surface-2 px-3 py-2 text-left">
                         <div className="flex items-center gap-1.5">
                           <Wrench className="h-3 w-3 text-accent" />
                           <p className="font-mono text-[9px] uppercase tracking-[0.1em] text-accent">
@@ -361,7 +361,7 @@ export default function SandboxPage() {
             {thinking ? (
               <div className="flex items-start gap-2.5">
                 <AgentAvatar name={agent.name} color={agent.color} size="sm" />
-                <div className="rounded-2xl rounded-tl-md border border-line bg-white/[0.035] px-3.5 py-3">
+                <div className="rounded-none rounded-tl-md border border-line bg-surface-2 px-3.5 py-3">
                   <div className="flex items-center gap-1">
                     {[0, 1, 2].map((index) => (
                       <span
@@ -383,7 +383,7 @@ export default function SandboxPage() {
                   key={sample}
                   type="button"
                   onClick={() => send(sample)}
-                  className="rounded-full border border-line bg-white/[0.02] px-2.5 py-1 text-[10px] text-muted transition-colors hover:border-line-strong hover:text-ink"
+                  className="rounded-none border border-line bg-surface-2/50 px-2.5 py-1 text-[10px] text-muted transition-colors hover:border-line-strong hover:text-ink"
                 >
                   {sample}
                 </button>
@@ -427,11 +427,11 @@ export default function SandboxPage() {
                   key={scenario.label}
                   type="button"
                   onClick={() => send(scenario.prompt)}
-                  className="flex w-full items-center gap-3 rounded-xl border border-line bg-white/[0.02] px-3 py-2.5 text-left transition-colors hover:border-line-strong hover:bg-white/[0.035]"
+                  className="flex w-full items-center gap-3 rounded-none border border-line bg-surface-2/50 px-3 py-2.5 text-left transition-colors hover:border-line-strong hover:bg-surface-2"
                 >
                   <span
                     className={cn(
-                      "flex h-7 w-7 items-center justify-center rounded-lg",
+                      "flex h-7 w-7 items-center justify-center rounded-none",
                       scenario.tone === "accent"
                         ? "bg-accent/10 text-accent"
                         : scenario.tone === "amber"
@@ -473,7 +473,7 @@ export default function SandboxPage() {
                     />
                   </div>
                 ))}
-                <div className="flex items-center gap-2 rounded-lg border border-green/15 bg-green/[0.04] px-2.5 py-2">
+                <div className="flex items-center gap-2 rounded-none border border-green/15 bg-green/[0.04] px-2.5 py-2">
                   <CheckCircle2 className="h-3.5 w-3.5 text-green" />
                   <p className="text-[10px] text-green">12 / 12 evaluation scenarios passed</p>
                 </div>
@@ -483,7 +483,7 @@ export default function SandboxPage() {
               </div>
             ) : (
               <div className="mt-3">
-                <div className="rounded-xl border border-line bg-white/[0.02] p-3">
+                <div className="rounded-none border border-line bg-surface-2/50 p-3">
                   <p className="text-[11px] leading-relaxed text-muted">
                     Tests intent handling, policy compliance, tone, and escalation precision against
                     the current version.
@@ -525,7 +525,7 @@ export default function SandboxPage() {
           <Panel className="p-4">
             <SectionTitle title="Session telemetry" description="Live values from this sandbox chat." />
             <div className="mt-3 grid grid-cols-2 gap-2">
-              <div className="rounded-xl border border-line bg-white/[0.02] p-2.5">
+              <div className="rounded-none border border-line bg-surface-2/50 p-2.5">
                 <p className="font-mono text-[8.5px] uppercase tracking-[0.12em] text-muted-2">
                   Confidence
                 </p>
@@ -533,15 +533,15 @@ export default function SandboxPage() {
                   {confidence.toFixed(2)}
                 </p>
               </div>
-              <div className="rounded-xl border border-line bg-white/[0.02] p-2.5">
+              <div className="rounded-none border border-line bg-surface-2/50 p-2.5">
                 <p className="font-mono text-[8.5px] uppercase tracking-[0.12em] text-muted-2">Risk</p>
                 <p className="mt-1 text-[15px] font-medium capitalize text-ink">{risk}</p>
               </div>
-              <div className="rounded-xl border border-line bg-white/[0.02] p-2.5">
+              <div className="rounded-none border border-line bg-surface-2/50 p-2.5">
                 <p className="font-mono text-[8.5px] uppercase tracking-[0.12em] text-muted-2">Language</p>
                 <p className="mt-1 text-[15px] font-medium text-ink">{LANGUAGE_SHORT[language]}</p>
               </div>
-              <div className="rounded-xl border border-line bg-white/[0.02] p-2.5">
+              <div className="rounded-none border border-line bg-surface-2/50 p-2.5">
                 <p className="font-mono text-[8.5px] uppercase tracking-[0.12em] text-muted-2">Latency</p>
                 <p className="mt-1 text-[15px] font-medium text-ink">1.2s</p>
               </div>

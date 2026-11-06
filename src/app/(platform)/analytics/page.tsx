@@ -59,18 +59,18 @@ export default function AnalyticsPage() {
   const languageDonut = languages.map((item, index) => ({
     name: item.label,
     value: item.count,
-    color: ["#c9f76f", "#b6a4ff", "#6fe3f5"][index] ?? "#c9f76f",
+    color: ["#221e1c", "#6b5a7d", "#3f6b63"][index] ?? "#221e1c",
   }));
   const sentimentDonut = sentiment.map((item, index) => ({
     name: item.label,
     value: item.count,
-    color: ["#6ee7a8", "#8b919c", "#ff6b6b"][index] ?? "#6ee7a8",
+    color: ["#4a6b45", "#96908a", "#a33a2a"][index] ?? "#4a6b45",
   }));
 
   return (
     <div className="mx-auto max-w-[1440px] px-4 py-6 lg:px-7 lg:py-8">
       <PageHeader
-        eyebrow="Analytics · last 30 days · mock dataset"
+        eyebrow="05 — Analytics · last 30 days · mock dataset"
         title={
           <>
             Where AI holds, and where it <span className="font-serif italic text-accent">hands off</span>.
@@ -152,12 +152,12 @@ export default function AnalyticsPage() {
               title="Sessions & containment"
               description="Daily view of the last 14 days."
             />
-            <div className="flex rounded-lg border border-line bg-white/[0.025] p-0.5">
+            <div className="flex rounded-none border border-line bg-surface p-0.5">
               <button
                 type="button"
                 onClick={() => setChartMode("volume")}
-                className={`rounded-md px-2.5 py-1 text-[10.5px] font-medium transition-colors ${
-                  chartMode === "volume" ? "bg-white/[0.08] text-ink" : "text-muted hover:text-ink"
+                className={`rounded-none px-2.5 py-1 text-[10.5px] font-medium transition-colors ${
+                  chartMode === "volume" ? "bg-surface-3 text-ink" : "text-muted hover:text-ink"
                 }`}
               >
                 Volume
@@ -165,8 +165,8 @@ export default function AnalyticsPage() {
               <button
                 type="button"
                 onClick={() => setChartMode("containment")}
-                className={`rounded-md px-2.5 py-1 text-[10.5px] font-medium transition-colors ${
-                  chartMode === "containment" ? "bg-white/[0.08] text-ink" : "text-muted hover:text-ink"
+                className={`rounded-none px-2.5 py-1 text-[10.5px] font-medium transition-colors ${
+                  chartMode === "containment" ? "bg-surface-3 text-ink" : "text-muted hover:text-ink"
                 }`}
               >
                 Containment
@@ -211,7 +211,7 @@ export default function AnalyticsPage() {
             ))}
           </div>
           <div className="mt-auto pt-4">
-            <div className="rounded-xl border border-amber/15 bg-amber/[0.04] p-3">
+            <div className="rounded-none border border-amber/15 bg-amber/[0.04] p-3">
               <p className="text-[10.5px] leading-relaxed text-amber/90">
                 Policy exceptions are the largest driver. That is a product decision — not a model
                 limitation.
@@ -224,7 +224,7 @@ export default function AnalyticsPage() {
       <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
         <Panel className="p-4">
           <SectionTitle title="Language performance" description="Detected language vs. containment." />
-          <div className="mt-3 grid grid-cols-[140px_1fr] items-center gap-3">
+          <div className="mt-3 grid grid-cols-[140px_minmax(0,1fr)] items-center gap-3">
             <Donut data={languageDonut} centerValue={`${overview.total.toLocaleString()}`} centerLabel="calls" />
             <div className="space-y-3">
               {languages.map((item, index) => (
@@ -232,7 +232,7 @@ export default function AnalyticsPage() {
                   <div className="flex items-center gap-2">
                     <span
                       className="h-1.5 w-1.5 rounded-full"
-                      style={{ background: ["#c9f76f", "#b6a4ff", "#6fe3f5"][index] }}
+                      style={{ background: ["#221e1c", "#6b5a7d", "#3f6b63"][index] }}
                     />
                     <span className="flex-1 text-[11px] text-ink">{item.label}</span>
                     <span className="font-mono text-[9px] text-muted-2">
@@ -253,7 +253,7 @@ export default function AnalyticsPage() {
 
         <Panel className="p-4">
           <SectionTitle title="Sentiment" description="Post-call classification." />
-          <div className="mt-3 grid grid-cols-[140px_1fr] items-center gap-3">
+          <div className="mt-3 grid grid-cols-[140px_minmax(0,1fr)] items-center gap-3">
             <Donut
               data={sentimentDonut}
               centerValue={overview.avgCsat.toFixed(1)}
@@ -265,7 +265,7 @@ export default function AnalyticsPage() {
                   <div className="flex items-center gap-2">
                     <span
                       className="h-1.5 w-1.5 rounded-full"
-                      style={{ background: ["#6ee7a8", "#8b919c", "#ff6b6b"][index] }}
+                      style={{ background: ["#4a6b45", "#96908a", "#a33a2a"][index] }}
                     />
                     <span className="flex-1 text-[11px] text-ink">{item.label}</span>
                     <span className="font-mono text-[9px] text-muted">{item.share.toFixed(0)}%</span>
@@ -330,12 +330,12 @@ export default function AnalyticsPage() {
                         <span
                           className={`flex h-6 w-6 items-center justify-center rounded-full bg-gradient-to-br text-[8px] font-semibold ${
                             item.agent.color === "lime"
-                              ? "from-[#ddff96] to-[#6b9528] text-[#121706]"
+                              ? "from-[#efece7] to-[#c6bcb0] text-[#221e1c]"
                               : item.agent.color === "cyan"
-                                ? "from-[#a8f5ff] to-[#257b87] text-[#031619]"
+                                ? "from-[#e3e9e6] to-[#a6bab2] text-[#1f2a27]"
                                 : item.agent.color === "violet"
-                                  ? "from-[#d8ccff] to-[#6f59b8] text-[#0f0a24]"
-                                  : "from-[#ffe0a8] to-[#bd7922] text-[#1b1102]"
+                                  ? "from-[#eae4ee] to-[#bba9c6] text-[#2b2233]"
+                                  : "from-[#f1e6d8] to-[#cdae8a] text-[#33271a]"
                           }`}
                         >
                           {item.agent.name.slice(0, 1)}
@@ -369,7 +369,7 @@ export default function AnalyticsPage() {
               </tbody>
             </table>
           </div>
-          <div className="flex flex-wrap items-center justify-between gap-2 border-t border-line bg-white/[0.015] px-4 py-2.5">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-t border-line bg-surface-2 px-4 py-2.5">
             <p className="text-[9.5px] text-muted-2">
               {performance.length} active agents · {overview.total.toLocaleString()} sessions
             </p>
@@ -388,7 +388,7 @@ export default function AnalyticsPage() {
             />
             <div className="mt-3 space-y-2.5">
               {insights.map((insight) => (
-                <div key={insight.title} className="rounded-xl border border-line bg-white/[0.02] p-3">
+                <div key={insight.title} className="rounded-none border border-line bg-surface-2/50 p-3">
                   <div className="flex items-start gap-2">
                     <span
                       className={`mt-0.5 h-1.5 w-1.5 shrink-0 rounded-full ${
@@ -416,7 +416,7 @@ export default function AnalyticsPage() {
                 <Link
                   key={session.id}
                   href={`/sessions/${session.id}`}
-                  className="flex items-center gap-2.5 rounded-lg border border-line bg-white/[0.018] px-2.5 py-2 transition-colors hover:border-line-strong"
+                  className="flex items-center gap-2.5 rounded-none border border-line bg-surface-2 px-2.5 py-2 transition-colors hover:border-line-strong"
                 >
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-[10.5px] text-ink">{session.customerName}</span>
@@ -433,7 +433,7 @@ export default function AnalyticsPage() {
         </div>
       </div>
 
-      <div className="mt-4 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-line bg-white/[0.015] px-4 py-2.5">
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-2 rounded-none border border-line bg-surface-2 px-4 py-2.5">
         <p className="flex items-center gap-2 text-[9.5px] text-muted-2">
           <Users className="h-3 w-3 text-accent/60" />
           1,284 simulated sessions · 30-day window · all metrics derived from the same dataset

@@ -147,7 +147,7 @@ function IntegrationCard({ integration }: { integration: Integration }) {
         </span>
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <h3 className="text-[13.5px] font-medium text-ink">{integration.name}</h3>
+            <h3 className="font-display text-[17px] font-normal tracking-[-0.01em] text-ink">{integration.name}</h3>
             <Badge tone={status.tone} dot>
               {status.label}
             </Badge>
@@ -164,7 +164,7 @@ function IntegrationCard({ integration }: { integration: Integration }) {
         {integration.capabilities.map((capability) => (
           <span
             key={capability}
-            className="rounded-md border border-line bg-white/[0.025] px-1.5 py-0.5 text-[9px] text-muted-2"
+            className="rounded-md border border-line bg-surface px-1.5 py-0.5 text-[9px] text-muted-2"
           >
             {capability}
           </span>
@@ -181,7 +181,7 @@ function IntegrationCard({ integration }: { integration: Integration }) {
       </button>
 
       {expanded ? (
-        <div className="mt-2 rounded-xl border border-line bg-black/25 p-2.5">
+        <div className="mt-2 rounded-xl border border-line bg-surface-2 p-2.5">
           <p className="text-[10px] leading-relaxed text-muted">{integration.detail}</p>
           <div className="mt-2 space-y-1">
             {integration.env.map((key) => (
@@ -217,7 +217,7 @@ export default function IntegrationsPage() {
   return (
     <div className="mx-auto max-w-[1440px] px-4 py-6 lg:px-7 lg:py-8">
       <PageHeader
-        eyebrow="Integrations · environment"
+        eyebrow="06 — Integrations · environment"
         title={
           <>
             Mock today. <span className="font-serif italic text-accent">Real audio</span> when the keys
@@ -308,7 +308,7 @@ export default function IntegrationsPage() {
             />
           </div>
 
-          <div className="mt-4 rounded-xl border border-line bg-white/[0.02] p-3">
+          <div className="mt-4 rounded-xl border border-line bg-surface-2/50 p-3">
             <p className="font-mono text-[9px] uppercase tracking-[0.12em] text-muted-2">
               What replaces what
             </p>
@@ -373,7 +373,7 @@ export default function IntegrationsPage() {
             </div>
           </Panel>
 
-          <div className="flex items-center justify-between rounded-xl border border-line bg-white/[0.015] px-3 py-2.5">
+          <div className="flex items-center justify-between rounded-xl border border-line bg-surface-2 px-3 py-2.5">
             <span className="font-mono text-[8.5px] uppercase tracking-[0.1em] text-muted-2">
               Mock runtime · v0.1
             </span>

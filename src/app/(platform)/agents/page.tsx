@@ -45,7 +45,7 @@ function AgentCard({
         <AgentAvatar name={agent.name} color={agent.color} size="lg" status={agent.status} />
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
-            <h3 className="truncate text-[15px] font-medium tracking-[-0.015em] text-ink">
+            <h3 className="truncate font-display text-[19px] font-normal tracking-[-0.015em] text-ink">
               {agent.name}
             </h3>
             <Badge tone={statusTone(agent.status)} dot>
@@ -62,7 +62,7 @@ function AgentCard({
         </div>
         <Link
           href={`/agents/${agent.id}`}
-          className="rounded-lg p-1 text-muted-2 opacity-0 transition-all hover:bg-white/[0.06] hover:text-ink group-hover:opacity-100"
+          className="rounded-lg p-1 text-muted-2 opacity-0 transition-all hover:bg-surface-3 hover:text-ink group-hover:opacity-100"
           aria-label="Open agent builder"
         >
           <ArrowUpRight className="h-4 w-4" />
@@ -73,7 +73,7 @@ function AgentCard({
         {agent.description || "No description yet. Add a purpose and persona in the builder."}
       </p>
 
-      <div className="mt-4 grid grid-cols-3 gap-2 rounded-xl border border-line bg-white/[0.018] p-2.5">
+      <div className="mt-4 grid grid-cols-3 gap-2 rounded-xl border border-line bg-surface-2 p-2.5">
         <div>
           <p className="font-mono text-[8.5px] uppercase tracking-[0.12em] text-muted-2">Sessions</p>
           <p className="mt-0.5 text-[13px] font-medium text-ink">
@@ -148,7 +148,7 @@ export default function AgentsPage() {
   return (
     <div className="mx-auto max-w-[1440px] px-4 py-6 lg:px-7 lg:py-8">
       <PageHeader
-        eyebrow="Agent fleet"
+        eyebrow="02 — Agent fleet"
         title={
           <>
             Build the team that <span className="font-serif italic text-accent">never sleeps</span>.
@@ -232,9 +232,9 @@ export default function AgentsPage() {
           <button
             type="button"
             onClick={createAgent}
-            className="group flex min-h-[250px] flex-col items-center justify-center rounded-[18px] border border-dashed border-line-strong bg-white/[0.012] p-6 text-center transition-colors hover:border-accent/30 hover:bg-accent/[0.025]"
+            className="group flex min-h-[250px] flex-col items-center justify-center rounded-[18px] border border-dashed border-line-strong bg-surface-2/50 p-6 text-center transition-colors hover:border-accent/30 hover:bg-accent/[0.025]"
           >
-            <span className="flex h-11 w-11 items-center justify-center rounded-2xl border border-line bg-white/[0.035] text-muted transition-colors group-hover:border-accent/25 group-hover:text-accent">
+            <span className="flex h-11 w-11 items-center justify-center rounded-2xl border border-line bg-surface-2 text-muted transition-colors group-hover:border-accent/25 group-hover:text-accent">
               <Plus className="h-5 w-5" />
             </span>
             <span className="mt-3 text-[13px] font-medium text-ink">Create a new agent</span>
@@ -245,7 +245,7 @@ export default function AgentsPage() {
         ) : null}
       </div>
 
-      <div className="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-line bg-white/[0.015] px-4 py-3">
+      <div className="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-line bg-surface-2 px-4 py-3">
         <div className="flex items-center gap-2 text-[10.5px] text-muted-2">
           <CheckCircle2 className="h-3.5 w-3.5 text-accent/70" />
           Changes are saved locally in mock mode. Real agent versions will deploy through LiveKit dispatch.

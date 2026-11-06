@@ -42,7 +42,7 @@ function sentimentTone(sentiment: SessionRecord["sentiment"]) {
 function speakerMeta(role: Turn["role"]) {
   if (role === "ai") return { label: "Ayesha", tone: "text-accent", bubble: "border-accent/10 bg-accent/[0.04]" };
   if (role === "human") return { label: "Sara Malik", tone: "text-cyan", bubble: "border-cyan/15 bg-cyan/[0.05]" };
-  if (role === "customer") return { label: "Customer", tone: "text-ink/70", bubble: "border-line bg-white/[0.025]" };
+  if (role === "customer") return { label: "Customer", tone: "text-ink/70", bubble: "border-line bg-surface" };
   return { label: "System", tone: "text-muted", bubble: "" };
 }
 
@@ -51,7 +51,7 @@ function TranscriptRow({ turn }: { turn: Turn }) {
     return (
       <div className="flex items-center gap-2 py-1">
         <span className="h-px flex-1 bg-line" />
-        <span className="rounded-full border border-line bg-white/[0.03] px-2.5 py-1 font-mono text-[8.5px] uppercase tracking-[0.1em] text-muted-2">
+        <span className="rounded-full border border-line bg-surface-2 px-2.5 py-1 font-mono text-[8.5px] uppercase tracking-[0.1em] text-muted-2">
           {turn.text}
         </span>
         <span className="h-px flex-1 bg-line" />
@@ -75,7 +75,7 @@ function TranscriptRow({ turn }: { turn: Turn }) {
             <span className="font-mono text-[8px] text-muted-2">{turn.confidence.toFixed(2)}</span>
           ) : null}
         </div>
-        <div className={cn("rounded-xl border px-3 py-2 text-[11.5px] leading-relaxed text-ink/90", meta.bubble)}>
+        <div className={cn("rounded-none border px-3 py-2 text-[11.5px] leading-relaxed text-ink/90", meta.bubble)}>
           {turn.text}
         </div>
       </div>
@@ -127,6 +127,13 @@ export default function SessionDetailPage() {
 
   const { transcript, summary } = content;
 
+  // Demo records created from the session catalog don't carry an explicit
+  // handoff object. Derive one so the log never contradicts a transferred call.
+  const derivedHandoff =
+    !record.handoffs?.length && (record.status === "transferred" || record.handledBy !== "ai");
+  const handoffAtSec = Math.max(10, Math.min(46, record.durationSec - 20));
+  const returnedAtSec = Math.max(handoffAtSec + 30, record.durationSec - 12);
+
   return (
     <div className="mx-auto max-w-[1440px] px-4 py-6 lg:px-7 lg:py-8">
       <div className="mb-4 flex items-center gap-2 text-[11px] text-muted-2">
@@ -139,7 +146,7 @@ export default function SessionDetailPage() {
       </div>
 
       <PageHeader
-        eyebrow={`Session detail · ${formatDateTime(record.startedAt)}`}
+        eyebrow={`03 — Session detail · ${formatDateTime(record.startedAt)}`}
         title={
           <span className="flex flex-wrap items-center gap-3">
             {record.customerName}
@@ -179,7 +186,7 @@ export default function SessionDetailPage() {
                   <p className="font-mono text-[9px] uppercase tracking-[0.16em] text-accent">
                     AI summary
                   </p>
-                  <h2 className="mt-1.5 max-w-2xl text-[19px] font-medium leading-snug tracking-[-0.025em] text-ink">
+                  <h2 className="mt-1.5 max-w-2xl font-display text-[25px] font-light leading-snug tracking-[-0.025em] text-ink">
                     {summary.headline}
                   </h2>
                 </div>
@@ -213,7 +220,7 @@ export default function SessionDetailPage() {
             <div className="p-5">
               <div className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_280px]">
                 <div>
-                  <p className="text-[11px] font-medium text-ink">What happened</p>
+                  <p className="font-display text-[17px] font-normal tracking-[-0.015em] text-ink">What happened</p>
                   <ul className="mt-2 space-y-2">
                     {summary.bullets.map((bullet) => (
                       <li key={bullet} className="flex items-start gap-2 text-[11.5px] leading-relaxed text-muted">
@@ -225,7 +232,7 @@ export default function SessionDetailPage() {
                     ))}
                   </ul>
                 </div>
-                <div className="rounded-xl border border-line bg-white/[0.02] p-3">
+                <div className="rounded-none border border-line bg-surface-2/50 p-3">
                   <p className="font-mono text-[8.5px] uppercase tracking-[0.12em] text-muted-2">
                     Key moments
                   </p>
@@ -334,7 +341,7 @@ export default function SessionDetailPage() {
             {record.handoffs && record.handoffs.length ? (
               <div className="mt-3 space-y-3">
                 {record.handoffs.map((handoff, index) => (
-                  <div key={index} className="rounded-xl border border-cyan/20 bg-cyan/[0.035] p-3">
+                  <div key={index} className="rounded-none border border-cyan/20 bg-cyan/[0.035] p-3">
                     <div className="flex items-center justify-between">
                       <Badge tone="cyan" dot>
                         {handoff.status}
@@ -359,8 +366,32 @@ export default function SessionDetailPage() {
                   </div>
                 ))}
               </div>
+            ) : derivedHandoff ? (
+              <div className="mt-3 space-y-3">
+                <div className="rounded-none border border-cyan/20 bg-cyan/[0.035] p-3">
+                  <div className="flex items-center justify-between">
+                    <Badge tone="cyan" dot>
+                      completed
+                    </Badge>
+                    <span className="font-mono text-[8.5px] text-muted-2">Sara Malik</span>
+                  </div>
+                  <p className="mt-2 text-[10.5px] leading-relaxed text-ink/85">
+                    {record.transferReason ?? "Policy exception"} — specialist joined with the full
+                    transcript and customer context.
+                  </p>
+                  <div className="mt-2 space-y-1 border-t border-line pt-2 font-mono text-[8.5px] text-muted-2">
+                    <p>requested {formatDuration(handoffAtSec)} into the call</p>
+                    <p>accepted {formatDuration(handoffAtSec + 8)}</p>
+                    <p>returned for close {formatDuration(returnedAtSec)}</p>
+                  </div>
+                  <p className="mt-2 text-[9.5px] leading-relaxed text-muted">
+                    Customer did not repeat any details. Control returned to AI for confirmation and
+                    close.
+                  </p>
+                </div>
+              </div>
             ) : (
-              <div className="mt-3 flex items-start gap-2 rounded-xl border border-green/20 bg-green/[0.04] p-3">
+              <div className="mt-3 flex items-start gap-2 rounded-none border border-green/20 bg-green/[0.04] p-3">
                 <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-green" />
                 <div>
                   <p className="text-[10.5px] font-medium text-green">No human handoff</p>
@@ -374,7 +405,7 @@ export default function SessionDetailPage() {
 
           <Panel className="p-4">
             <div className="flex items-start gap-2.5">
-              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-accent/20 bg-accent/[0.07] text-accent">
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-none border border-accent/20 bg-accent/[0.07] text-accent">
                 <Sparkles className="h-3.5 w-3.5" />
               </span>
               <div>
@@ -397,7 +428,7 @@ export default function SessionDetailPage() {
             </div>
           </Panel>
 
-          <div className="flex items-center justify-between rounded-xl border border-line bg-white/[0.015] px-3 py-2">
+          <div className="flex items-center justify-between rounded-none border border-line bg-surface-2 px-3 py-2">
             <span className="font-mono text-[8.5px] uppercase tracking-[0.1em] text-muted-2">
               PII masked · summary generated
             </span>

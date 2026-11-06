@@ -21,14 +21,14 @@ export function PageHeader({
   actions?: React.ReactNode;
 }) {
   return (
-    <div className="flex flex-col justify-between gap-5 pb-6 md:flex-row md:items-end">
-      <div className="max-w-2xl">
-        <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-accent/80">{eyebrow}</p>
-        <h1 className="mt-2 text-[27px] font-medium leading-[1.12] tracking-[-0.035em] text-ink md:text-[32px]">
+    <div className="flex flex-col justify-between gap-6 border-b border-line pb-7 md:flex-row md:items-end">
+      <div className="max-w-[720px]">
+        <p className="eyebrow index-rule">{eyebrow}</p>
+        <h1 className="mt-4 font-display text-[36px] font-light leading-[1.05] tracking-[-0.035em] text-ink md:text-[46px]">
           {title}
         </h1>
         {description ? (
-          <p className="mt-2 max-w-xl text-[13px] leading-relaxed text-muted">{description}</p>
+          <p className="mt-4 max-w-[580px] text-[13px] leading-[1.7] text-muted">{description}</p>
         ) : null}
       </div>
       {actions ? <div className="flex flex-wrap items-center gap-2">{actions}</div> : null}
@@ -58,38 +58,38 @@ export function MetricCard({
   icon?: React.ReactNode;
 }) {
   const tones = {
-    accent: "#c9f76f",
-    cyan: "#6fe3f5",
-    amber: "#ffb84d",
-    violet: "#b6a4ff",
-    red: "#ff6b6b",
+    accent: "#221e1c",
+    cyan: "#3f6b63",
+    amber: "#a9762a",
+    violet: "#6b5a7d",
+    red: "#a33a2a",
   };
   const trendUp = (trend ?? 0) > 0;
   const trendFlat = (trend ?? 0) === 0;
 
   return (
-    <Panel className="relative overflow-hidden p-4">
+    <Panel className="relative overflow-hidden p-5">
       <div className="flex items-start justify-between">
-        <p className="text-[11.5px] font-medium text-muted">{label}</p>
+        <p className="font-mono text-[8.5px] uppercase tracking-[0.18em] text-muted-2">{label}</p>
         {icon ? <span className="text-muted-2">{icon}</span> : null}
       </div>
-      <div className="mt-3 flex items-baseline gap-1">
-        <span className="text-[27px] font-semibold leading-none tracking-[-0.045em] text-ink">
+      <div className="mt-4 flex items-baseline gap-1.5">
+        <span className="font-display text-[34px] font-light leading-none tracking-[-0.04em] text-ink">
           {value}
         </span>
-        {suffix ? <span className="text-[12px] text-muted-2">{suffix}</span> : null}
+        {suffix ? <span className="font-mono text-[11px] text-muted-2">{suffix}</span> : null}
       </div>
-      <div className="mt-3 flex items-end justify-between gap-2">
-        <div className="flex min-w-0 items-center gap-1.5">
+      <div className="mt-4 flex items-end justify-between gap-2">
+        <div className="flex min-w-0 items-center gap-2">
           {typeof trend === "number" ? (
             <span
               className={cn(
-                "inline-flex items-center gap-0.5 rounded-md px-1 py-0.5 font-mono text-[9.5px]",
+                "inline-flex items-center gap-0.5 px-1 py-0.5 font-mono text-[9px]",
                 trendFlat
-                  ? "bg-white/[0.05] text-muted"
+                  ? "bg-surface-2 text-muted"
                   : trendUp
-                    ? "bg-green/10 text-green"
-                    : "bg-red/10 text-red",
+                    ? "bg-green/[0.08] text-green"
+                    : "bg-red/[0.07] text-red",
               )}
             >
               {trendFlat ? (
@@ -102,7 +102,7 @@ export function MetricCard({
               {Math.abs(trend).toFixed(1)}%
             </span>
           ) : null}
-          <span className="truncate text-[10px] text-muted-2">{trendLabel ?? detail}</span>
+          <span className="truncate font-mono text-[8.5px] uppercase tracking-[0.08em] text-muted-2">{trendLabel ?? detail}</span>
         </div>
         {spark ? <Sparkline values={spark} tone={tones[tone]} /> : null}
       </div>
@@ -140,7 +140,7 @@ export function SessionTable({
               (header) => (
                 <th
                   key={header}
-                  className="px-4 py-2.5 font-mono text-[9px] font-normal uppercase tracking-[0.14em] text-muted-2 first:pl-5 last:pr-4"
+                  className="px-4 py-3 font-mono text-[8px] font-normal uppercase tracking-[0.16em] text-muted-2 first:pl-5 last:pr-4"
                 >
                   {header}
                 </th>
@@ -152,11 +152,11 @@ export function SessionTable({
           {rows.map((session) => (
             <tr
               key={session.id}
-              className="group border-b border-line/60 transition-colors last:border-0 hover:bg-white/[0.025]"
+              className="group border-b border-line/60 transition-colors last:border-0 hover:bg-surface-2/70"
             >
-              <td className="py-2.5 pl-5 pr-4">
+              <td className="py-3 pl-5 pr-4">
                 <Link href={`/sessions/${session.id}`} className="flex items-center gap-2.5">
-                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-line bg-white/[0.035] font-mono text-[9px] text-muted">
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-line bg-surface-2 font-mono text-[9px] text-muted">
                     {session.customerName
                       .split(" ")
                       .map((part) => part[0])
@@ -167,36 +167,36 @@ export function SessionTable({
                     <span className="block truncate text-[12px] font-medium text-ink">
                       {session.customerName}
                     </span>
-                    <span className="block font-mono text-[9px] text-muted-2">{session.id}</span>
+                    <span className="block font-mono text-[8.5px] tracking-[0.04em] text-muted-2">{session.id}</span>
                   </span>
                 </Link>
               </td>
-              <td className="px-4 py-2.5 text-[11.5px] text-muted">{agentName(session.agentId)}</td>
-              <td className="max-w-[160px] px-4 py-2.5">
+              <td className="px-4 py-3 text-[11.5px] text-muted">{agentName(session.agentId)}</td>
+              <td className="max-w-[160px] px-4 py-3">
                 <span className="block truncate text-[11.5px] text-ink/85">{session.intent}</span>
-                <span className="mt-0.5 block">
+                <span className="mt-1 block">
                   <SessionStatusBadge session={session} />
                 </span>
               </td>
-              <td className="px-4 py-2.5">
+              <td className="px-4 py-3">
                 <LanguageTag language={session.language} variant="compact" />
               </td>
-              <td className="px-4 py-2.5">
+              <td className="px-4 py-3">
                 <HandledByBadge session={session} />
               </td>
-              <td className="px-4 py-2.5 font-mono text-[10.5px] text-muted">
+              <td className="px-4 py-3 font-mono text-[10px] text-muted">
                 {formatDuration(session.durationSec)}
               </td>
-              <td className="px-4 py-2.5 font-mono text-[10.5px] text-muted">
+              <td className="px-4 py-3 font-mono text-[10px] text-muted">
                 {session.csat ? session.csat.toFixed(1) : "—"}
               </td>
-              <td className="px-4 py-2.5 font-mono text-[9.5px] text-muted-2">
+              <td className="px-4 py-3 font-mono text-[9px] text-muted-2">
                 {formatRelative(session.startedAt)}
               </td>
-              <td className="py-2.5 pl-2 pr-4 text-right">
+              <td className="py-3 pl-2 pr-4 text-right">
                 <Link
                   href={`/sessions/${session.id}`}
-                  className="inline-flex h-6 w-6 items-center justify-center rounded-md text-muted-2 opacity-0 transition-all hover:bg-white/[0.06] hover:text-ink group-hover:opacity-100"
+                  className="inline-flex h-6 w-6 items-center justify-center text-muted-2 opacity-0 transition-all hover:bg-surface-2 hover:text-ink group-hover:opacity-100"
                   aria-label="Open session"
                 >
                   <ChevronRight className="h-3.5 w-3.5" />
@@ -249,17 +249,17 @@ export function AgentPerformanceList({
         <Link
           key={item.agent.id}
           href={`/agents/${item.agent.id}`}
-          className="flex items-center gap-3 rounded-xl px-2 py-2.5 transition-colors hover:bg-white/[0.03]"
+          className="flex items-center gap-3 px-2 py-2.5 transition-colors hover:bg-surface-2"
         >
           <AgentAvatar name={item.agent.name} color={item.agent.color} size="sm" />
           <div className="min-w-0 flex-1">
             <div className="flex items-center justify-between gap-2">
               <p className="truncate text-[12px] font-medium text-ink">{item.agent.name}</p>
-              <span className="font-mono text-[10px] text-accent">{item.containment.toFixed(0)}%</span>
+              <span className="font-mono text-[10px] text-ink">{item.containment.toFixed(0)}%</span>
             </div>
             <div className="mt-1.5 flex items-center gap-2">
               <Progress value={item.containment} className="h-1" />
-              <span className="shrink-0 font-mono text-[9px] text-muted-2">
+              <span className="shrink-0 font-mono text-[8.5px] uppercase tracking-[0.06em] text-muted-2">
                 {item.sessions.toLocaleString()} calls
               </span>
             </div>
@@ -288,7 +288,7 @@ export function LiveNowCard({
       {sessions.map((session) => (
         <div
           key={session.id}
-          className="flex items-center gap-3 rounded-xl border border-line bg-white/[0.022] px-3 py-2.5"
+          className="flex items-center gap-3 border border-line bg-surface px-3 py-2.5"
         >
           <span className="relative flex h-2 w-2 shrink-0">
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red opacity-40" />
@@ -299,7 +299,7 @@ export function LiveNowCard({
               {session.customerName}
               <span className="ml-1.5 font-normal text-muted-2">· {agentName(session.agentId)}</span>
             </p>
-            <p className="mt-0.5 font-mono text-[9px] uppercase tracking-[0.1em] text-muted-2">
+            <p className="mt-0.5 font-mono text-[8.5px] uppercase tracking-[0.1em] text-muted-2">
               {LANGUAGE_SHORT[session.language]} · {formatDuration(session.elapsedSec)} · {session.state}
             </p>
           </div>

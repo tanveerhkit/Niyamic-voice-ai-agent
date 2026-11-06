@@ -23,7 +23,7 @@ const roleMeta = {
     label: "Customer",
     icon: UserRound,
     color: "text-ink/70",
-    bubble: "border-line bg-white/[0.025]",
+    bubble: "border-line bg-surface",
   },
   system: { label: "System", icon: Bot, color: "text-muted", bubble: "" },
 };
@@ -47,7 +47,7 @@ export function Transcript({
       <div className="space-y-3 p-4">
         {session.transcript.length === 0 && !partial ? (
           <div className="flex h-40 flex-col items-center justify-center text-center">
-            <span className="flex h-10 w-10 items-center justify-center rounded-full border border-line bg-white/[0.03] text-muted-2">
+            <span className="flex h-10 w-10 items-center justify-center rounded-full border border-line bg-surface-2 text-muted-2">
               <Bot className="h-4 w-4" />
             </span>
             <p className="mt-3 text-[11.5px] text-muted">Connecting audio...</p>
@@ -60,7 +60,7 @@ export function Transcript({
             return (
               <div key={turn.id} className="flex items-center gap-2 py-1">
                 <span className="h-px flex-1 bg-line" />
-                <span className="rounded-full border border-line bg-white/[0.03] px-2.5 py-1 font-mono text-[8.5px] uppercase tracking-[0.1em] text-muted-2">
+                <span className="rounded-full border border-line bg-surface-2 px-2.5 py-1 font-mono text-[8.5px] uppercase tracking-[0.1em] text-muted-2">
                   {turn.text}
                 </span>
                 <span className="h-px flex-1 bg-line" />
@@ -115,7 +115,7 @@ export function Transcript({
                 "rounded-xl border px-3 py-2 text-[11.5px] leading-relaxed text-ink/90",
                 partial.role === "ai"
                   ? "border-accent/10 bg-accent/[0.045]"
-                  : "border-line bg-white/[0.025]",
+                  : "border-line bg-surface",
               )}
             >
               {partial.text.slice(0, partial.shown)}
