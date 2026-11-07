@@ -67,7 +67,18 @@ npm run lint
 4. Say: *"Hi, I want to check my order status. My order number is 4821."*
 5. The agent looks up the order (shown under **Data lookups**) and answers from the sheet: the order is processing, two payments were made, and ₹1,500 is outstanding.
 6. Ask a policy question, for example *"How long do card refunds take?"*, to show a PDF answer.
-7. Click **End call** → **View session** for the transcript and lookups.
+7. Open **Supervisor** in a second tab, then say *"I want to talk to a human."* The agent plays the handoff message, and the call appears in the Supervisor queue as **Waiting**, with the reason and a summary.
+8. Click **Accept handoff**. You join the same call with your microphone and see the conversation so far, and the agent goes silent. **Return to Ayesha** hands the call back to the agent; **End call** hangs up for everyone.
+9. Click **End call** → **View session** for the transcript, lookups, and handoff log.
+
+**When the agent hands off.** The rules come from the agent's **Escalation** tab and are sent with each call:
+
+- **Trigger keywords** transfer at once whenever the caller says one. Ayesha's defaults include *agent* and *cancel*, so remove any that are too broad.
+- **Customer asks for a human** and, with **Auto-transfer on high risk**, legal threats, fraud, chargebacks and safety concerns also transfer at once.
+- **Policy exception**, **negative sentiment** and the **confidence threshold** make the agent offer a specialist. It transfers only if the caller agrees.
+- **Max turns**: on that caller turn, if the issue isn't resolved, the agent offers a specialist.
+
+If no one accepts within 90 seconds, the agent tells the caller a specialist will call back and keeps helping. The specialist's part of the call isn't transcribed.
 
 **How retrieval works.** Spreadsheets are parsed into structured rows; every short cell is indexed under normalised keys, so `4821`, `order 4821`, `ORD-4821`, `CUST-1042`, a full name, or a phone number with or without `+91` all resolve by exact match. Related rows on other sheets (for example payments for the same order) come back together. PDFs are split into page-tagged passages and searched with SQLite full-text ranking. The agent is instructed to answer only from what these lookups return, and to say so when nothing matches.
 

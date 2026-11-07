@@ -13,20 +13,6 @@
       "runtimeArgs": ["-m", "uvicorn", "api:app", "--app-dir", "backend", "--port", "8000"],
       "port": 8000,
       "autoPort": false
-    },
-    {
-      "name": "voice-api-8010",
-      "runtimeExecutable": "backend/.venv/Scripts/python.exe",
-      "runtimeArgs": ["-m", "uvicorn", "api:app", "--app-dir", "backend", "--port", "8010"],
-      "port": 8010,
-      "autoPort": false
-    },
-    {
-      "name": "web-3010",
-      "runtimeExecutable": "cmd",
-      "runtimeArgs": ["/c", "set NEXT_PUBLIC_VOICE_API_URL=http://localhost:8010&& npm run dev -- --port 3010"],
-      "port": 3010,
-      "autoPort": false
     }
   ]
 }

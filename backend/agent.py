@@ -344,6 +344,7 @@ class Handoff:
                 "niyamic.handoff": "",
                 "niyamic.handoff_reason": "",
                 "niyamic.handoff_summary": "",
+                "niyamic.handoff_team": "",
                 "niyamic.specialist": "",
             }
         )

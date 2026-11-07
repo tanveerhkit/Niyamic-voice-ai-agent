@@ -258,9 +258,12 @@ async def active_calls() -> dict[str, Any]:
             for room in rooms:
                 if not room.name.startswith("call-"):
                     continue
-                participants = (
-                    await client.room.list_participants(livekit_api.ListParticipantsRequest(room=room.name))
-                ).participants
+                try:
+                    participants = (
+                        await client.room.list_participants(livekit_api.ListParticipantsRequest(room=room.name))
+                    ).participants
+                except livekit_api.TwirpError:
+                    continue  # the room closed while we were listing
                 agent = next((p for p in participants if p.kind == livekit_api.ParticipantInfo.Kind.AGENT), None)
                 caller = next((p for p in participants if p.identity.startswith(CALLER_PREFIX)), None)
                 if caller is None:

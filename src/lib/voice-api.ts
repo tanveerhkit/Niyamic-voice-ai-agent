@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
 import type { Agent } from "./types";
 
 /** Base URL of the Python backend (`backend/api.py`). */
@@ -213,8 +213,9 @@ export const voiceApi = {
 type CallsState = { calls: ActiveCall[]; fetchedAt: number };
 const CALLS_INTERVAL_MS = 3000;
 const CALLS_OFFLINE_INTERVAL_MS = 30_000;
-let callsState: CallsState = { calls: [], fetchedAt: 0 };
-const callsListeners = new Set<(state: CallsState) => void>();
+const NO_CALLS: CallsState = { calls: [], fetchedAt: 0 };
+let callsState = NO_CALLS;
+const callsListeners = new Set<() => void>();
 let callsTimer: ReturnType<typeof setTimeout> | undefined;
 let callsGeneration = 0;
 
@@ -224,13 +225,25 @@ function pollCalls() {
   const settle = (calls: ActiveCall[], nextMs: number) => {
     if (generation !== callsGeneration || !callsListeners.size) return;
     callsState = { calls, fetchedAt: Date.now() };
-    callsListeners.forEach((listener) => listener(callsState));
+    callsListeners.forEach((listener) => listener());
     callsTimer = setTimeout(pollCalls, nextMs);
   };
   voiceApi.activeCalls().then(
     (result) => settle(result.calls, CALLS_INTERVAL_MS),
     () => settle([], CALLS_OFFLINE_INTERVAL_MS),
   );
+}
+
+function subscribeCalls(listener: () => void) {
+  callsListeners.add(listener);
+  if (callsListeners.size === 1) pollCalls();
+  return () => {
+    callsListeners.delete(listener);
+    if (!callsListeners.size) {
+      clearTimeout(callsTimer);
+      callsGeneration++;
+    }
+  };
 }
 
 /** Fetch live calls now instead of waiting for the next poll, for example after joining one. */
@@ -240,21 +253,12 @@ export function refreshActiveCalls() {
 
 /** Real LiveKit calls in progress. Polls slowly while the backend is unreachable. */
 export function useActiveCalls() {
-  const [state, setState] = useState<CallsState>(callsState);
-
-  useEffect(() => {
-    callsListeners.add(setState);
-    if (callsListeners.size === 1) pollCalls();
-    return () => {
-      callsListeners.delete(setState);
-      if (!callsListeners.size) {
-        clearTimeout(callsTimer);
-        callsGeneration++;
-      }
-    };
-  }, []);
-
-  return state;
+  // The server snapshot keeps hydration consistent when another component has already polled.
+  return useSyncExternalStore(
+    subscribeCalls,
+    () => callsState,
+    () => NO_CALLS,
+  );
 }
 
 /** Backend status, or an error when the backend is not running. */
