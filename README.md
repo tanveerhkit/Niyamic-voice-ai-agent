@@ -86,6 +86,20 @@ If no one accepts within 90 seconds, the agent tells the caller a specialist wil
 
 ---
 
+## Deploying
+
+The website (Netlify or Render) only serves the screens. Real calls, the Data page and the handoff need the backend: `api.py` and the voice agent `agent.py`, which run together in one always-on Render service defined in [`render.yaml`](render.yaml).
+
+1. In Render, choose **New → Blueprint** and pick this repository. Render reads `render.yaml` and asks for each secret: the LiveKit, Azure OpenAI v1 (`OPENAI_*`), Deepgram and Smallest AI keys, plus `CORS_ORIGINS`, your website addresses separated by commas with no trailing slash (for example `https://your-site.netlify.app,https://your-site.onrender.com`). For classic Azure OpenAI, add `AZURE_OPENAI_*` in the dashboard instead.
+2. When it's live, open `https://<service>.onrender.com/api/health` and check that `voice.ready` is `true`.
+3. On each website, set `NEXT_PUBLIC_VOICE_API_URL=https://<service>.onrender.com` and redeploy. The value is built into the site, so on Netlify use **Clear cache and deploy site**.
+4. Upload your spreadsheets and PDFs again on the hosted **Data** page; local `backend/storage` isn't in Git.
+5. Stop any `agent.py dev` worker on your own machine that uses the same LiveKit project, or LiveKit will send some calls to it.
+
+The service uses a paid instance (1 CPU, 2 GB) and a 1 GB disk at `/var/data`: the free plan sleeps when idle, which stops the agent, and uploads on a service without a disk are lost on every deploy. The API has no sign-in, so anyone who has the service URL can use it.
+
+---
+
 ## Scripted demo (no credentials)
 
 The scripted story: **Zara Ahmed** was charged twice for order **4821**. Ayesha (AI) verifies the duplicate, hits a policy edge, and hands the call to **Sara Malik** (human) with the full transcript. Sara resolves it and returns control to Ayesha to close the call.
@@ -210,7 +224,7 @@ Browser (Next.js)                 backend/api.py (FastAPI)            LiveKit Cl
 - **`backend/api.py`** — `/api/datasets` (upload, replace, delete, preview), `/api/search` (the same retrieval the agent uses), `/api/health` (provider status), `/api/token` (LiveKit token that dispatches the agent with the persona from the agent builder).
 - **`backend/agent.py`** — the voice agent. It looks up records before answering any order or account question, announces each lookup to the call screen on the `agent.tool` data topic, and publishes transcripts on LiveKit's standard transcription stream.
 - **Secrets** stay in the backend. The browser only knows `NEXT_PUBLIC_VOICE_API_URL`.
-- **Hosting.** The agent worker needs a long-lived host (a VM, Container Apps, Fly.io, Render) — not a serverless platform. `api.py` and `agent.py` must share the same `DATA_DIR`.
+- **Hosting.** The agent worker needs a long-lived host (a VM, Container Apps, Fly.io, Render) — not a serverless platform. `api.py` and `agent.py` must share the same `DATA_DIR`, so `backend/start.sh` runs both in one service (see [Deploying](#deploying)).
 
 ---
 

@@ -1,0 +1,56 @@
+# Render Blueprint for the voice backend: the HTTP API (backend/api.py) and the LiveKit
+# voice agent (backend/agent.py), run together by backend/start.sh.
+# Create it in Render with New > Blueprint and this repository. Render asks for each
+# `sync: false` value once, when the Blueprint is first created.
+#
+# The websites (Netlify, Render) are deployed separately. After this service is live, set
+# NEXT_PUBLIC_VOICE_API_URL on each website to this service's URL and redeploy it.
+
+services:
+  - type: web
+    name: niyamic-echo-api
+    runtime: python
+    # Closest Render region to callers in India. It can't be changed after creation.
+    region: singapore
+    # Always on, 1 CPU and 2 GB. The free plan sleeps when idle, which stops the agent,
+    # and disks need a paid plan.
+    plan: 1c-2g
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: bash start.sh
+    healthCheckPath: /api/health
+    # Time the agent gets to let calls in progress finish during a deploy or restart.
+    # A service with a disk stops before its replacement starts, so a longer wait also
+    # means a longer gap before new calls connect.
+    maxShutdownDelaySeconds: 120
+    disk:
+      name: data
+      mountPath: /var/data
+      sizeGB: 1
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.11.11"
+      - key: DATA_DIR
+        value: /var/data
+      # The website addresses allowed to call this API, comma-separated, without a
+      # trailing slash, e.g. https://your-site.netlify.app,https://your-site.onrender.com
+      - key: CORS_ORIGINS
+        sync: false
+      - key: LIVEKIT_URL
+        sync: false
+      - key: LIVEKIT_API_KEY
+        sync: false
+      - key: LIVEKIT_API_SECRET
+        sync: false
+      # Azure OpenAI v1 endpoint. For classic Azure OpenAI, set AZURE_OPENAI_ENDPOINT,
+      # AZURE_OPENAI_API_KEY and AZURE_OPENAI_DEPLOYMENT in the dashboard instead.
+      - key: OPENAI_BASE_URL
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: OPENAI_MODEL
+        sync: false
+      - key: DEEPGRAM_API_KEY
+        sync: false
+      - key: SMALLEST_API_KEY
+        sync: false
