@@ -23,7 +23,7 @@ import { AgentAvatar, Wordmark } from "./brand";
 import { StartCallButton } from "./start-call";
 
 const navItems = [
-  { href: "/", label: "Overview", icon: LayoutDashboard },
+  { href: "/", label: "Home", icon: LayoutDashboard },
   { href: "/agents", label: "Agents", icon: Bot },
   { href: "/data", label: "Data", icon: Database },
   { href: "/sessions", label: "Sessions", icon: PhoneCall },
@@ -39,7 +39,7 @@ function isActive(pathname: string, href: string) {
 }
 
 function crumbFor(pathname: string) {
-  if (pathname === "/") return "Overview";
+  if (pathname === "/") return "Home";
   if (pathname.startsWith("/agents/")) return "Agents / Builder";
   if (pathname.startsWith("/agents")) return "Agents";
   if (pathname.startsWith("/data")) return "Data";

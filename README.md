@@ -192,7 +192,7 @@ Open **Integrations**:
 
 | Route | Screen | What it shows |
 | --- | --- | --- |
-| `/` | Overview | KPIs, live calls, volume, escalation drivers, recent sessions |
+| `/` | Home | KPIs, live calls, volume, escalation drivers, recent sessions |
 | `/agents` | Agents | Active + draft agents with containment and transfer stats |
 | `/agents/[id]` | Agent Builder | Persona, languages, tools, escalation policy, version history |
 | `/agents/[id]/sandbox` | Sandbox | Scripted test chat, scenarios, evaluation, telemetry |

@@ -896,7 +896,7 @@ export function LiveCall({ sessionId, agent }: { sessionId: string; agent: Agent
                 <Link href="/">
                   <Button variant="secondary" size="sm" className="w-full">
                     <ArrowLeft className="h-3 w-3" />
-                    Overview
+                    Home
                   </Button>
                 </Link>
               </div>
