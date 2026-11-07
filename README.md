@@ -21,6 +21,13 @@ npm run dev
 
 Open **http://localhost:3000**. If port 3000 is already in use, Next.js prints the port it picked (for example `http://localhost:3001`) — use that URL.
 
+The site opens on a sign-in page that asks for a login ID only:
+
+- **`supervisor`** opens the whole workspace. The **Start live call** button is shown but switched off, because live calls are for customers.
+- **`customer`** opens a single page with one **Start live call** button that connects to support.
+
+Each tab signs in separately, so a supervisor and a customer can be open side by side in one browser.
+
 **2. Backend** (data uploads, call tokens, and the voice agent)
 
 ```bash
@@ -40,7 +47,7 @@ uvicorn api:app --port 8000
 python agent.py dev
 ```
 
-`api.py` serves uploads and issues call tokens; `agent.py` is the LiveKit worker that joins each call. **Integrations** shows each provider's status, and **Start live call** switches from the scripted demo to real calls once all four are connected.
+`api.py` serves uploads, issues call tokens and stores finished calls; `agent.py` is the LiveKit worker that joins each call. **Integrations** shows each provider's status, and the customer's **Start live call** button works once all four are connected.
 
 The Data page and lookups work with only `uvicorn` running — no provider keys needed.
 
@@ -61,15 +68,15 @@ npm run lint
 
 ## Real voice demo
 
-1. Open **Data** and upload `backend/samples/orders.xlsx` and `backend/samples/support-policy.pdf` (or the client's own files). Wait for **Ready**.
+1. Sign in as `supervisor`. Open **Data** and upload `backend/samples/orders.xlsx` and `backend/samples/support-policy.pdf` (or the client's own files). Wait for **Ready**.
 2. In **Test lookup**, search `4821` to see exactly what the agent will retrieve: the order row and both payment rows.
-3. Click **Start live call** → **Start call** and allow the microphone.
+3. In a second tab, sign in as `customer`, click **Start live call** and allow the microphone.
 4. Say: *"Hi, I want to check my order status. My order number is 4821."*
-5. The agent looks up the order (shown under **Data lookups**) and answers from the sheet: the order is processing, two payments were made, and ₹1,500 is outstanding.
+5. The agent looks up the order and answers from the sheet: the order is processing, two payments were made, and ₹1,500 is outstanding.
 6. Ask a policy question, for example *"How long do card refunds take?"*, to show a PDF answer.
-7. Open **Supervisor** in a second tab, then say *"I want to talk to a human."* The agent plays the handoff message, and the call appears in the Supervisor queue as **Waiting**, with the reason and a summary.
+7. In the supervisor tab, open **Supervisor**, then say *"I want to talk to a human."* The agent plays the handoff message, and the call appears in the Supervisor queue as **Waiting**, with the reason and a summary.
 8. Click **Accept handoff**. You join the same call with your microphone and see the conversation so far, and the agent goes silent. **Return to Ayesha** hands the call back to the agent; **End call** hangs up for everyone.
-9. Click **End call** → **View session** for the transcript, lookups, and handoff log.
+9. End the call. It appears on the supervisor's **Home** and **Sessions** pages with the transcript, lookups, and handoff log.
 
 **When the agent hands off.** The rules come from the agent's **Escalation** tab and are sent with each call:
 
@@ -116,7 +123,7 @@ Use **one browser profile with two tabs**. Niyamic Echo syncs live calls through
 
 On the dashboard:
 
-- 1,284 conversations, **78.8% AI containment**, 14.5% human transfers, 3m 52s average handle time.
+- Home counts real calls only, so it reads zero until a customer has called. The seeded story (1,284 conversations, **78.8% AI containment**, 14.5% human transfers, 3m 52s average handle time) is on **Analytics**.
 - Point out **Live calls** on the right and the **Escalation reasons** breakdown.
 - Say the line: *“The AI owns the call until it has a reason not to. The human joins the same room — not a new call.”*
 - Everything is a deterministic mock dataset. No external services are called.
@@ -131,7 +138,7 @@ On the dashboard:
 
 ### 1:30–3:30 — Live call + human handoff
 
-In **Tab B**, click **Start live call** (top right). This opens `/call/SES-LIVE-...`.
+In **Tab B**, open **Supervisor** → **Start test call**. This opens `/call/SES-LIVE-...` in a new tab; sign in there as `supervisor` too.
 
 - Let the AI greet the customer and start the order conversation for a few seconds.
 - Open **Demo controls** (bottom right) → **Skip to escalation**.
@@ -192,7 +199,9 @@ Open **Integrations**:
 
 | Route | Screen | What it shows |
 | --- | --- | --- |
-| `/` | Home | KPIs, live calls, volume, escalation drivers, recent sessions |
+| `/login` | Sign in | Login ID only: `supervisor` or `customer` |
+| `/support` | Customer support | The customer's only page: one **Start live call** button, then the call |
+| `/` | Home | Real calls only: KPIs against the prior 30 days, live calls, volume, escalation drivers, recent calls |
 | `/agents` | Agents | Active + draft agents with containment and transfer stats |
 | `/agents/[id]` | Agent Builder | Persona, languages, tools, escalation policy, version history |
 | `/agents/[id]/sandbox` | Sandbox | Scripted test chat, scenarios, evaluation, telemetry |
@@ -201,7 +210,7 @@ Open **Integrations**:
 | `/sessions` | Session Log | Searchable record of 1,284 sessions |
 | `/sessions/[id]` | Post-Session | Summary, key moments, transcript, handoff log, recording, export |
 | `/analytics` | Analytics | Containment, drivers, language, sentiment, intents, agents |
-| `/call/[sessionId]` | Customer Call | Real LiveKit call (`?mode=live`) or the scripted console: waveform, transcript, data lookups |
+| `/call/[sessionId]` | Test call | Scripted call console for supervisors: waveform, transcript, demo controls |
 | `/integrations` | Integrations | Live status of LiveKit, Azure OpenAI, Deepgram, Smallest AI, and uploaded data |
 
 ---
@@ -221,7 +230,7 @@ Browser (Next.js)                 backend/api.py (FastAPI)            LiveKit Cl
 ```
 
 - **`backend/knowledge.py`** — ingestion and retrieval. Excel/CSV become structured records with an exact-match index; PDFs become page-tagged passages in an FTS5 index. Re-uploads swap rows atomically.
-- **`backend/api.py`** — `/api/datasets` (upload, replace, delete, preview), `/api/search` (the same retrieval the agent uses), `/api/health` (provider status), `/api/token` (LiveKit token that dispatches the agent with the persona from the agent builder).
+- **`backend/api.py`** — `/api/datasets` (upload, replace, delete, preview), `/api/search` (the same retrieval the agent uses), `/api/health` (provider status), `/api/token` (LiveKit token that dispatches the agent with the persona from the agent builder), `/api/sessions` (finished calls, stored in `DATA_DIR/history.db`, which feed Home and the session log on every device).
 - **`backend/agent.py`** — the voice agent. It looks up records before answering any order or account question, announces each lookup to the call screen on the `agent.tool` data topic, and publishes transcripts on LiveKit's standard transcription stream.
 - **Secrets** stay in the backend. The browser only knows `NEXT_PUBLIC_VOICE_API_URL`.
 - **Hosting.** The agent worker needs a long-lived host (a VM, Container Apps, Fly.io, Render) — not a serverless platform. `api.py` and `agent.py` must share the same `DATA_DIR`, so `backend/start.sh` runs both in one service (see [Deploying](#deploying)).
@@ -230,12 +239,12 @@ Browser (Next.js)                 backend/api.py (FastAPI)            LiveKit Cl
 
 ## How the scripted demo works
 
-- **Start a call.** `StartCallButton` creates an ID like `SES-LIVE-MW3R2585` and routes to `/call/<id>?agent=ag_ayesha` (adding `&mode=live` when every provider is configured).
+- **Start a call.** **Supervisor → Start test call** creates an ID like `SES-LIVE-MW3R2585` and opens `/call/<id>?agent=ag_ayesha`. Real calls start from the customer's `/support` page instead.
 - **Call engine.** `use-call-engine` advances `CALL_SCRIPT` / `CLOSING_SCRIPT` on a 110ms tick. It streams partial AI/customer turns, simulates STT/LLM/TTS latency, records tool calls, and emits a handoff event at the policy edge.
 - **Live store.** `live-store` persists each live session under `relay.live.<id>` in `localStorage` and broadcasts changes on the `relay.live.v1` `BroadcastChannel`. Finished records are written to `relay.session.<id>`.
 - **Mutations.** `live-actions` owns every state transition: manual transfer, demo fast-forward, accept handoff, human turn, customer turn, return to AI, finish. The real transport can call the same functions.
 - **Seed data.** 1,284 deterministic sessions across Ayesha, Omar, Maya, and draft Zain, anchored to `2026-11-05T16:20:00.000Z`. Analytics are computed from those records with `src/lib/analytics.ts`.
-- **Browser-local state.** Scripted calls and the session log live in `localStorage`. Real calls are saved to the same log when they end.
+- **Browser-local state.** Scripted calls and the session log live in `localStorage`. Real calls are saved there and to the backend's call history when they end. Home counts only real calls.
 
 ---
 
@@ -279,7 +288,7 @@ python agent.py start         # voice agent (production)
 - **Scanned PDFs** need OCR before upload; files without a text layer are rejected with a clear error.
 - **Real-call summaries** list the lookups made during the call; they are not LLM-written.
 - **Analytics are seeded.** The 1,284-session analytics baseline is deterministic and does not move with new calls.
-- **No auth.** The API has no login. Do not expose it publicly with real customer data.
+- **Sign-in is a role switch, not security.** Login IDs have no password and are checked in the browser, and the API has no login. Do not expose it publicly with real customer data.
 
 ---
 

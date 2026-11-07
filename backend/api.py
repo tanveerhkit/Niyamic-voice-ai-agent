@@ -1,8 +1,8 @@
 """HTTP API for the Niyamic Echo frontend.
 
 Serves dataset uploads and retrieval tests, reports which voice providers are
-configured, and issues LiveKit tokens that dispatch the voice agent into a call.
-All provider secrets stay on this server.
+configured, issues LiveKit tokens that dispatch the voice agent into a call, and
+keeps the record of each finished call. All provider secrets stay on this server.
 """
 
 from __future__ import annotations
@@ -24,8 +24,9 @@ import jwt
 from fastapi import BackgroundTasks, FastAPI, File, HTTPException, Query, Response, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from livekit import api as livekit_api
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
+import history
 import knowledge
 from config import AGENT_NAME, settings
 
@@ -33,6 +34,7 @@ from config import AGENT_NAME, settings
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     knowledge.init_storage()
+    history.init_storage()
     yield
 
 
@@ -345,6 +347,37 @@ async def end_call(room_name: str) -> Response:
     except Exception as exc:  # noqa: BLE001 - report LiveKit outages to the UI
         raise HTTPException(502, f"Could not reach LiveKit: {exc}") from exc
     _calls_cache = None
+    return Response(status_code=204)
+
+
+# --------------------------------------------------------------------------- #
+# Call history                                                                #
+# --------------------------------------------------------------------------- #
+
+MAX_RECORD_BYTES = 512_000
+
+
+class SessionRecord(BaseModel):
+    """A finished call as the website records it. Only the fields the store relies on are checked."""
+
+    model_config = ConfigDict(extra="allow")
+
+    id: str = Field(..., min_length=1, max_length=80, pattern=r"^[A-Za-z0-9_-]+$")
+    startedAt: str = Field(..., min_length=1, max_length=40)
+
+
+@app.get("/api/sessions")
+def list_sessions(limit: int = Query(500, ge=1, le=2000)) -> dict[str, Any]:
+    """Finished voice calls, newest first."""
+    return {"sessions": history.recent(limit)}
+
+
+@app.post("/api/sessions", status_code=204)
+def save_session(record: SessionRecord) -> Response:
+    data = record.model_dump()
+    if len(json.dumps(data, ensure_ascii=False)) > MAX_RECORD_BYTES:
+        raise HTTPException(413, "This call record is too large to store.")
+    history.save(data)
     return Response(status_code=204)
 
 

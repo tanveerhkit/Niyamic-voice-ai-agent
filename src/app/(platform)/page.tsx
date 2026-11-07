@@ -4,22 +4,24 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import {
   ArrowUpRight,
-  CalendarDays,
   ChevronRight,
   Headphones,
   MessageSquare,
   ShieldCheck,
   Timer,
 } from "lucide-react";
-import { useAllSessions, useLiveSessions } from "@/lib/live-store";
+import { useRealSessions } from "@/lib/live-store";
 import {
   computeAgentPerformance,
+  computeDailyValues,
   computeOverview,
   computeTransferReasons,
   computeVolumeSeries,
+  type Overview,
 } from "@/lib/analytics";
+import type { SessionRecord } from "@/lib/types";
 import { formatHandleTime } from "@/lib/utils";
-import { useActiveCalls } from "@/lib/voice-api";
+import { refreshRecordedSessions, useActiveCalls } from "@/lib/voice-api";
 import {
   AgentPerformanceList,
   LiveNowCard,
@@ -28,7 +30,7 @@ import {
   SessionTable,
   TransferReasonList,
 } from "@/components/dashboard";
-import { Badge, Button, Panel, SectionTitle } from "@/components/ui";
+import { Badge, Panel, SectionTitle } from "@/components/ui";
 import { ContainmentTrend, SessionsChart } from "@/components/charts";
 
 const VOICE_STATE: Record<string, string> = {
@@ -38,9 +40,29 @@ const VOICE_STATE: Record<string, string> = {
   speaking: "AI speaking",
 };
 
-export default function OverviewPage() {
-  const sessions = useAllSessions();
-  const liveSessions = useLiveSessions();
+const DAY = 86_400_000;
+const PERIOD_DAYS = 30;
+const SPARK_DAYS = 14;
+
+/** Sessions that started between `fromDay` and `toDay` days before `endMs`. */
+function withinDays(sessions: SessionRecord[], endMs: number, fromDay: number, toDay: number) {
+  return sessions.filter((session) => {
+    const age = endMs - new Date(session.startedAt).getTime();
+    return age >= fromDay * DAY && age < toDay * DAY;
+  });
+}
+
+/** Percentage change, or undefined when there is nothing to compare against. */
+function percentChange(current: number, previous: number | undefined) {
+  return previous ? ((current - previous) / previous) * 100 : undefined;
+}
+
+function plural(count: number, word: string) {
+  return `${count} ${word}${count === 1 ? "" : "s"}`;
+}
+
+export default function HomePage() {
+  const { sessions: calls, loaded, offline } = useRealSessions();
   const activeCalls = useActiveCalls();
   const [chartMode, setChartMode] = useState<"volume" | "containment">("volume");
   const [now, setNow] = useState(() => Date.now());
@@ -51,10 +73,42 @@ export default function OverviewPage() {
     return () => clearInterval(timer);
   }, []);
 
-  const overview = useMemo(() => computeOverview(sessions), [sessions]);
-  const volume = useMemo(() => computeVolumeSeries(sessions, 14), [sessions]);
-  const reasons = useMemo(() => computeTransferReasons(sessions), [sessions]);
-  const performance = useMemo(() => computeAgentPerformance(sessions), [sessions]);
+  // A call that just ended shows up without waiting for the next history poll.
+  const activeCount = activeCalls.calls.length;
+  useEffect(() => {
+    refreshRecordedSessions();
+  }, [activeCount]);
+
+  // The 30-day window moves once a minute, not with every clock tick.
+  const periodEnd = now - (now % 60_000);
+  const current = useMemo(() => withinDays(calls, periodEnd, 0, PERIOD_DAYS), [calls, periodEnd]);
+  const previous = useMemo(
+    () => withinDays(calls, periodEnd, PERIOD_DAYS, PERIOD_DAYS * 2),
+    [calls, periodEnd],
+  );
+  const overview = useMemo(() => computeOverview(current), [current]);
+  const prior = useMemo<Overview | null>(
+    () => (previous.length ? computeOverview(previous) : null),
+    [previous],
+  );
+  const volume = useMemo(
+    () => computeVolumeSeries(current, PERIOD_DAYS, periodEnd),
+    [current, periodEnd],
+  );
+  const reasons = useMemo(() => computeTransferReasons(current), [current]);
+  const performance = useMemo(
+    () => computeAgentPerformance(current).filter((item) => item.sessions > 0),
+    [current],
+  );
+  const sparks = useMemo(() => {
+    const daily = (value: (day: Overview) => number) =>
+      computeDailyValues(current, (day) => value(computeOverview(day)), SPARK_DAYS, periodEnd);
+    return {
+      containment: daily((day) => day.containmentRate),
+      transfers: daily((day) => day.transferRate),
+      handleTime: daily((day) => day.avgDurationSec),
+    };
+  }, [current, periodEnd]);
 
   const voiceRows = activeCalls.calls.map((call) => ({
     id: call.id,
@@ -70,78 +124,77 @@ export default function OverviewPage() {
           ? "Human active"
           : (VOICE_STATE[call.agentState] ?? "Connecting"),
   }));
-  const scriptedRows = liveSessions
-    .filter((session) => session.status !== "ended")
-    .map((session) => ({
-      id: session.id,
-      agentId: session.agentId,
-      customerName: session.customerName,
-      language: session.language,
-      elapsedSec: Math.floor((now - session.startedAt) / 1000),
-      risk: session.risk,
-      state:
-        session.status === "escalating"
-          ? "Awaiting human"
-          : session.status === "human_active"
-            ? "Human active"
-            : "AI active",
-    }));
-  const liveCount = voiceRows.length + scriptedRows.length;
-  const liveRows = [...voiceRows, ...scriptedRows].slice(0, 3);
+  const liveCount = voiceRows.length;
+  const liveRows = voiceRows.slice(0, 3);
 
-  const transfers = Math.round((overview.transferRate / 100) * overview.total);
+  const hasCalls = overview.total > 0;
+  const transfers = overview.transferred;
+  const escalations = reasons.reduce((sum, reason) => sum + reason.count, 0);
+  const handleDelta = prior ? overview.avgDurationSec - prior.avgDurationSec : 0;
+  // Rates and averages mean nothing without calls, so they show a dash instead of 0.
+  const rate = (value: string) => (hasCalls ? value : "—");
+  const trendOf = (value: (overview: Overview) => number) =>
+    hasCalls && prior ? value(overview) - value(prior) : undefined;
+  const fromPrior = (value: (overview: Overview) => number) =>
+    hasCalls && prior ? `from ${value(prior).toFixed(1)}% prior 30d` : undefined;
 
   return (
     <div className="mx-auto max-w-[1440px] px-4 py-6 lg:px-7 lg:py-8">
       <PageHeader
         title="Home"
-        actions={
-          <Button variant="outline">
-            <CalendarDays className="h-3.5 w-3.5" />
-            Last 30 days
-          </Button>
+        description={
+          offline
+            ? "Couldn't load call history from the voice backend, so only calls recorded in this browser are shown."
+            : undefined
         }
+        actions={<Badge tone="outline">Last 30 days</Badge>}
       />
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <MetricCard
           label="Conversations"
-          value={overview.total.toLocaleString()}
+          value={loaded ? overview.total.toLocaleString() : "—"}
           detail="30-day total"
-          trend={12.4}
-          trendLabel="vs. prior 30d"
-          spark={[72, 88, 81, 96, 92, 110, 104, 118]}
+          trend={hasCalls ? percentChange(overview.total, prior?.total) : undefined}
+          trendLabel={hasCalls && prior ? "vs. prior 30d" : undefined}
+          spark={hasCalls ? volume.slice(-SPARK_DAYS).map((point) => point.total) : undefined}
           icon={<MessageSquare className="h-4 w-4" />}
         />
         <MetricCard
           label="AI containment"
-          value={overview.containmentRate.toFixed(1)}
-          suffix="%"
+          value={rate(overview.containmentRate.toFixed(1))}
+          suffix={hasCalls ? "%" : undefined}
           detail="Resolved without a handoff"
-          trend={2.1}
-          trendLabel="up from 76.3%"
-          spark={[74, 76, 75.5, 77, 76.8, 78, 77.6, 78.4]}
+          trend={trendOf((o) => o.containmentRate)}
+          trendLabel={fromPrior((o) => o.containmentRate)}
+          spark={sparks.containment}
           tone="accent"
           icon={<ShieldCheck className="h-4 w-4" />}
         />
         <MetricCard
           label="Human transfers"
-          value={overview.transferRate.toFixed(1)}
-          suffix="%"
-          detail={`${transfers} transfers`}
-          trend={-0.8}
-          trendLabel="down from 15%"
-          spark={[16, 15.2, 15.8, 14.9, 15.1, 14.4, 14.7, 14.2]}
+          value={rate(overview.transferRate.toFixed(1))}
+          suffix={hasCalls ? "%" : undefined}
+          detail={plural(transfers, "transfer")}
+          trend={trendOf((o) => o.transferRate)}
+          trendLabel={fromPrior((o) => o.transferRate)}
+          spark={sparks.transfers}
           tone="amber"
           icon={<Headphones className="h-4 w-4" />}
         />
         <MetricCard
           label="Avg. handle time"
-          value={formatHandleTime(overview.avgDurationSec)}
-          detail="Across all sessions"
-          trend={-4.2}
-          trendLabel="18s faster"
-          spark={[246, 238, 242, 231, 228, 226, 225, 222]}
+          value={rate(formatHandleTime(overview.avgDurationSec))}
+          detail="Across all calls"
+          trend={hasCalls ? percentChange(overview.avgDurationSec, prior?.avgDurationSec) : undefined}
+          trendLabel={
+            hasCalls && prior
+              ? handleDelta === 0
+                ? "same as prior 30d"
+                : `${Math.abs(handleDelta)}s ${handleDelta < 0 ? "faster" : "slower"}`
+              : undefined
+          }
+          spark={sparks.handleTime}
           tone="cyan"
           icon={<Timer className="h-4 w-4" />}
         />
@@ -199,9 +252,11 @@ export default function OverviewPage() {
                 </p>
                 <p className="mt-1 text-[15px] font-medium text-ink">
                   {overview.contained.toLocaleString()}
-                  <span className="ml-1.5 font-mono text-[9.5px] text-accent">
-                    {overview.containmentRate.toFixed(1)}%
-                  </span>
+                  {hasCalls ? (
+                    <span className="ml-1.5 font-mono text-[9.5px] text-accent">
+                      {overview.containmentRate.toFixed(1)}%
+                    </span>
+                  ) : null}
                 </p>
               </div>
               <div className="border-r border-line px-5 py-3">
@@ -210,9 +265,11 @@ export default function OverviewPage() {
                 </p>
                 <p className="mt-1 text-[15px] font-medium text-ink">
                   {transfers.toLocaleString()}
-                  <span className="ml-1.5 font-mono text-[9.5px] text-amber">
-                    {overview.transferRate.toFixed(1)}%
-                  </span>
+                  {hasCalls ? (
+                    <span className="ml-1.5 font-mono text-[9.5px] text-amber">
+                      {overview.transferRate.toFixed(1)}%
+                    </span>
+                  ) : null}
                 </p>
               </div>
               <div className="px-5 py-3">
@@ -220,8 +277,8 @@ export default function OverviewPage() {
                   Resolution rate
                 </p>
                 <p className="mt-1 text-[15px] font-medium text-ink">
-                  {overview.resolutionRate.toFixed(1)}
-                  <span className="ml-0.5 text-[10px] text-muted-2">%</span>
+                  {rate(overview.resolutionRate.toFixed(1))}
+                  {hasCalls ? <span className="ml-0.5 text-[10px] text-muted-2">%</span> : null}
                 </p>
               </div>
             </div>
@@ -238,7 +295,13 @@ export default function OverviewPage() {
               </Link>
             </div>
             <div className="border-t border-line">
-              <SessionTable sessions={sessions} limit={7} />
+              {calls.length ? (
+                <SessionTable sessions={calls} limit={7} />
+              ) : (
+                <p className="px-5 py-8 text-center text-[11px] text-muted">
+                  {loaded ? "No calls yet. Finished customer calls appear here." : "Loading calls…"}
+                </p>
+              )}
             </div>
           </Panel>
         </div>
@@ -271,10 +334,14 @@ export default function OverviewPage() {
           <Panel className="p-4">
             <SectionTitle
               title="Escalation reasons"
-              action={<Badge tone="outline">{transfers}</Badge>}
+              action={<Badge tone="outline">{escalations}</Badge>}
             />
             <div className="mt-4">
-              <TransferReasonList reasons={reasons} />
+              {reasons.length ? (
+                <TransferReasonList reasons={reasons} />
+              ) : (
+                <p className="text-[11px] text-muted">No calls were escalated in the last 30 days.</p>
+              )}
             </div>
           </Panel>
 
@@ -288,7 +355,11 @@ export default function OverviewPage() {
               }
             />
             <div className="mt-3">
-              <AgentPerformanceList performance={performance} />
+              {performance.length ? (
+                <AgentPerformanceList performance={performance} />
+              ) : (
+                <p className="text-[11px] text-muted">No agent has taken a call in the last 30 days.</p>
+              )}
             </div>
           </Panel>
         </div>

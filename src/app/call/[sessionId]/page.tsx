@@ -1,4 +1,5 @@
 import CallClient from "./call-client";
+import { RequireRole } from "@/components/require-role";
 import { demoLiveSessions } from "@/lib/seed";
 
 export function generateStaticParams() {
@@ -8,6 +9,11 @@ export function generateStaticParams() {
   ];
 }
 
+// Scripted test calls for supervisors. Customers place real calls from /support.
 export default function CallPage() {
-  return <CallClient />;
+  return (
+    <RequireRole role="supervisor">
+      <CallClient />
+    </RequireRole>
+  );
 }

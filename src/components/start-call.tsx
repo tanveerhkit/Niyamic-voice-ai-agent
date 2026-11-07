@@ -1,40 +1,19 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { Loader2, Phone } from "lucide-react";
-import { voiceApi } from "@/lib/voice-api";
+import { Lock } from "lucide-react";
 import { Button } from "./ui";
 
-export function StartCallButton({
-  label = "Start live call",
-  size = "md",
-  variant = "primary",
-  agentId = "ag_ayesha",
-}: {
-  label?: string;
-  size?: "sm" | "md" | "lg";
-  variant?: "primary" | "secondary" | "outline";
-  agentId?: string;
-}) {
-  const router = useRouter();
-  const [checking, setChecking] = useState(false);
-
-  // Real voice calls when every provider is configured; the scripted demo otherwise.
-  const start = async () => {
-    setChecking(true);
-    const live = await voiceApi.health().then(
-      (health) => health.voice.ready,
-      () => false,
-    );
-    const id = `SES-LIVE-${Date.now().toString(36).toUpperCase()}`;
-    router.push(`/call/${id}?agent=${agentId}${live ? "&mode=live" : ""}`);
-  };
-
+/**
+ * Live calls are placed by customers from their support page, so in the workspace the
+ * button is shown switched off.
+ */
+export function StartCallButton({ size = "md" }: { size?: "sm" | "md" | "lg" }) {
   return (
-    <Button variant={variant} size={size} onClick={() => void start()} disabled={checking}>
-      {checking ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Phone className="h-3.5 w-3.5" />}
-      {label}
-    </Button>
+    <span title="Only customers can start a live call" className="inline-flex cursor-not-allowed">
+      <Button variant="primary" size={size} disabled>
+        <Lock className="h-3.5 w-3.5" />
+        Start live call
+      </Button>
+    </span>
   );
 }

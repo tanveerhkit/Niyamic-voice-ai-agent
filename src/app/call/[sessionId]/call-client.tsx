@@ -42,7 +42,6 @@ import { Badge, Button, Panel, Progress } from "@/components/ui";
 import { Waveform } from "@/components/live/waveform";
 import { Transcript } from "@/components/live/transcript";
 import { Logo } from "@/components/brand";
-import { LiveCall } from "./live-call";
 
 function CallControl({
   icon,
@@ -710,16 +709,33 @@ function CallScreen() {
   );
 }
 
-function CallRouter() {
-  const params = useParams<{ sessionId: string }>();
-  const searchParams = useSearchParams();
-  const agentId = searchParams.get("agent") ?? "ag_ayesha";
-  const agent = useAgent(agentId) ?? agentById(agentId) ?? seedAgents[0];
+/** Shown for old links to the live call screen, which now belongs to customers. */
+function LiveCallsForCustomers() {
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-bg p-4">
+      <Panel className="w-full max-w-md p-6 text-center">
+        <h1 className="font-display text-[24px] font-light tracking-[-0.02em] text-ink">
+          Live calls are for customers
+        </h1>
+        <p className="mt-2 text-[11.5px] leading-relaxed text-muted">
+          Customers start live calls from their support page. You can watch and join them from
+          Supervisor.
+        </p>
+        <Link href="/supervisor" className="mt-5 inline-block">
+          <Button variant="primary">
+            <Headphones className="h-3.5 w-3.5" />
+            Open Supervisor
+          </Button>
+        </Link>
+      </Panel>
+    </div>
+  );
+}
 
-  if (searchParams.get("mode") === "live") {
-    const sessionId = Array.isArray(params.sessionId) ? params.sessionId[0] : params.sessionId;
-    return <LiveCall sessionId={sessionId} agent={agent} />;
-  }
+function CallRouter() {
+  const searchParams = useSearchParams();
+  // Real calls are placed by customers from /support; this screen only runs scripted test calls.
+  if (searchParams.get("mode") === "live") return <LiveCallsForCustomers />;
   return <CallScreen />;
 }
 

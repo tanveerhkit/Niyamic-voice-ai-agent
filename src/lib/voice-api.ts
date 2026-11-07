@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
-import type { Agent } from "./types";
+import type { Agent, SessionRecord } from "./types";
 
 /** Base URL of the Python backend (`backend/api.py`). */
 export const VOICE_API_URL = (process.env.NEXT_PUBLIC_VOICE_API_URL || "http://localhost:8000").replace(
@@ -206,9 +206,21 @@ export const voiceApi = {
     }),
   endCall: (roomName: string) =>
     request<void>(`/api/calls/${encodeURIComponent(roomName)}/end`, { method: "POST" }),
+  sessions: () => request<{ sessions: SessionRecord[] }>("/api/sessions"),
+  saveSession: (record: SessionRecord) => {
+    const body = JSON.stringify(record);
+    return request<void>("/api/sessions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body,
+      // Lets the save finish when the caller ends the call by closing the tab. Browsers
+      // refuse keepalive bodies over 64 KB, so a long transcript is sent without it.
+      keepalive: body.length < 60_000,
+    });
+  },
 };
 
-// One poller shared by every component that shows live calls (the sidebar badge, Overview,
+// One poller shared by every component that shows live calls (the sidebar badge, Home,
 // Supervisor), so mounting several of them doesn't multiply requests.
 type CallsState = { calls: ActiveCall[]; fetchedAt: number };
 const CALLS_INTERVAL_MS = 3000;
@@ -258,6 +270,57 @@ export function useActiveCalls() {
     subscribeCalls,
     () => callsState,
     () => NO_CALLS,
+  );
+}
+
+// Finished calls stored by the backend, polled the same way for every component that shows them.
+type HistoryState = { sessions: SessionRecord[]; loaded: boolean; offline: boolean };
+const HISTORY_INTERVAL_MS = 10_000;
+const NO_HISTORY: HistoryState = { sessions: [], loaded: false, offline: false };
+let historyState = NO_HISTORY;
+const historyListeners = new Set<() => void>();
+let historyTimer: ReturnType<typeof setTimeout> | undefined;
+let historyGeneration = 0;
+
+function pollHistory() {
+  clearTimeout(historyTimer);
+  const generation = ++historyGeneration;
+  const settle = (sessions: SessionRecord[] | null, nextMs: number) => {
+    if (generation !== historyGeneration || !historyListeners.size) return;
+    // Keep the last good list through a backend outage.
+    historyState = { sessions: sessions ?? historyState.sessions, loaded: true, offline: !sessions };
+    historyListeners.forEach((listener) => listener());
+    historyTimer = setTimeout(pollHistory, nextMs);
+  };
+  voiceApi.sessions().then(
+    (result) => settle(result.sessions, HISTORY_INTERVAL_MS),
+    () => settle(null, CALLS_OFFLINE_INTERVAL_MS),
+  );
+}
+
+function subscribeHistory(listener: () => void) {
+  historyListeners.add(listener);
+  if (historyListeners.size === 1) pollHistory();
+  return () => {
+    historyListeners.delete(listener);
+    if (!historyListeners.size) {
+      clearTimeout(historyTimer);
+      historyGeneration++;
+    }
+  };
+}
+
+/** Fetch call history now instead of waiting for the next poll, for example after a call ends. */
+export function refreshRecordedSessions() {
+  if (historyListeners.size) pollHistory();
+}
+
+/** Finished voice calls from every device, as stored by the backend. */
+export function useRecordedSessions() {
+  return useSyncExternalStore(
+    subscribeHistory,
+    () => historyState,
+    () => NO_HISTORY,
   );
 }
 

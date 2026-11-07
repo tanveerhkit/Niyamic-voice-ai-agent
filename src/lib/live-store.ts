@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { seedSessions } from "./seed";
 import type { Language, LiveSession, SessionRecord } from "./types";
+import { useRecordedSessions } from "./voice-api";
 
 const LIVE_PREFIX = "relay.live.";
 const COMPLETED_PREFIX = "relay.session.";
@@ -265,7 +266,7 @@ export function useLiveSessions() {
 
 const EMPTY_SESSIONS: SessionRecord[] = [];
 
-export function useAllSessions(extra: SessionRecord[] = EMPTY_SESSIONS) {
+function useLocalCompleted() {
   const [local, setLocal] = useState<SessionRecord[]>([]);
 
   useEffect(() => {
@@ -276,15 +277,38 @@ export function useAllSessions(extra: SessionRecord[] = EMPTY_SESSIONS) {
     return unsubscribe;
   }, []);
 
-  return useMemo(() => {
-    const map = new Map<string, SessionRecord>();
-    for (const record of [...seedSessions, ...extra, ...local]) {
-      map.set(record.id, record);
-    }
-    return [...map.values()].sort(
-      (a, b) => new Date(b.startedAt).getTime() - new Date(a.startedAt).getTime(),
-    );
-  }, [extra, local]);
+  return local;
+}
+
+/** Newest first; a later list wins when two hold the same session. */
+function mergeSessions(...lists: SessionRecord[][]) {
+  const map = new Map<string, SessionRecord>();
+  for (const list of lists) {
+    for (const record of list) map.set(record.id, record);
+  }
+  return [...map.values()].sort(
+    (a, b) => new Date(b.startedAt).getTime() - new Date(a.startedAt).getTime(),
+  );
+}
+
+export function useAllSessions(extra: SessionRecord[] = EMPTY_SESSIONS) {
+  const local = useLocalCompleted();
+  const recorded = useRecordedSessions().sessions;
+  return useMemo(() => mergeSessions(seedSessions, recorded, extra, local), [recorded, extra, local]);
+}
+
+/**
+ * Real voice calls only, without the demo catalog or scripted test calls: every call the
+ * backend stored, plus any recorded in this browser while the backend was unreachable.
+ */
+export function useRealSessions() {
+  const local = useLocalCompleted();
+  const { sessions: recorded, loaded, offline } = useRecordedSessions();
+  const sessions = useMemo(
+    () => mergeSessions(recorded, local.filter((record) => record.live)),
+    [recorded, local],
+  );
+  return { sessions, loaded, offline };
 }
 
 export function createLiveSession(

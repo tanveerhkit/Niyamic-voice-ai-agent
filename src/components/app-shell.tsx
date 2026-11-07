@@ -10,12 +10,14 @@ import {
   Database,
   Headphones,
   LayoutDashboard,
+  LogOut,
   Menu,
   PhoneCall,
   Plug,
   Search,
   X,
 } from "lucide-react";
+import { signOut } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 import { useLiveSessions } from "@/lib/live-store";
 import { useActiveCalls } from "@/lib/voice-api";
@@ -135,13 +137,22 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
 
       <div className="mt-auto border-t border-line p-4">
         <div className="flex items-center gap-2.5 px-1">
-          <AgentAvatar name="Tanveer Khan" color="cyan" size="sm" />
+          <AgentAvatar name="Supervisor" color="cyan" size="sm" />
           <div className="min-w-0 flex-1">
-            <p className="truncate text-[11.5px] font-medium text-ink">Tanveer Khan</p>
+            <p className="truncate text-[11.5px] font-medium text-ink">Supervisor</p>
             <p className="truncate font-mono text-[8.5px] uppercase tracking-[0.1em] text-muted-2">
-              Workspace owner
+              Signed in
             </p>
           </div>
+          <button
+            type="button"
+            onClick={signOut}
+            className="p-1.5 text-muted-2 transition-colors hover:bg-surface-2 hover:text-ink"
+            aria-label="Sign out"
+            title="Sign out"
+          >
+            <LogOut className="h-3.5 w-3.5" />
+          </button>
         </div>
       </div>
     </div>

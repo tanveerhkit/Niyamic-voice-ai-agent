@@ -83,6 +83,26 @@ export function computeVolumeSeries(
   return buckets;
 }
 
+/**
+ * One value per day that had sessions, oldest first, over the `days` days up to `endMs`.
+ * Undefined when fewer than two days had sessions, since there is no trend to draw.
+ */
+export function computeDailyValues(
+  sessions: SessionRecord[],
+  value: (day: SessionRecord[]) => number,
+  days: number,
+  endMs: number,
+): number[] | undefined {
+  const byAge = new Map<number, SessionRecord[]>();
+  for (const session of sessions) {
+    const age = Math.floor((endMs - new Date(session.startedAt).getTime()) / DAY);
+    if (age < 0 || age >= days) continue;
+    byAge.set(age, [...(byAge.get(age) ?? []), session]);
+  }
+  const values = [...byAge.entries()].sort((a, b) => b[0] - a[0]).map(([, day]) => value(day));
+  return values.length > 1 ? values : undefined;
+}
+
 export function computeLanguageMix(sessions: SessionRecord[]) {
   const languages: Language[] = ["en", "hi", "ur"];
   const labels: Record<Language, string> = { en: "English", hi: "Hindi", ur: "Urdu" };

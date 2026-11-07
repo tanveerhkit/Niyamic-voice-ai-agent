@@ -16,6 +16,7 @@ import { agentById, seedAgents } from "@/lib/agents";
 import { useAgent } from "@/lib/agent-store";
 import { useAllSessions } from "@/lib/live-store";
 import { getSeedSession } from "@/lib/seed";
+import { useRecordedSessions } from "@/lib/voice-api";
 import { fallbackSummary, fallbackTranscript } from "@/lib/session-content";
 import type { SessionRecord, Turn } from "@/lib/types";
 import {
@@ -95,6 +96,7 @@ export default function SessionDetailPage() {
   const params = useParams<{ id: string }>();
   const id = Array.isArray(params.id) ? params.id[0] : params.id;
   const sessions = useAllSessions();
+  const historyLoaded = useRecordedSessions().loaded;
   const record = sessions.find((session) => session.id === id) ?? getSeedSession(id);
   const agent = useAgent(record?.agentId ?? "ag_ayesha") ?? agentById(record?.agentId ?? "ag_ayesha") ?? seedAgents[0];
 
@@ -105,6 +107,9 @@ export default function SessionDetailPage() {
       summary: record.summary ?? fallbackSummary(record),
     };
   }, [record]);
+
+  // A call made on another device arrives with the call history; wait for it before giving up.
+  if (!record && !historyLoaded) return null;
 
   if (!record || !content) {
     return (
