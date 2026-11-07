@@ -19,10 +19,6 @@ services:
     buildCommand: pip install -r requirements.txt
     startCommand: bash start.sh
     healthCheckPath: /api/health
-    # Time the agent gets to let calls in progress finish during a deploy or restart.
-    # A service with a disk stops before its replacement starts, so a longer wait also
-    # means a longer gap before new calls connect.
-    maxShutdownDelaySeconds: 120
     disk:
       name: data
       mountPath: /var/data
